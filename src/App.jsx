@@ -5,6 +5,7 @@ import Toolbar from './components/Toolbar.jsx';
 import QuestionViewer from './components/QuestionViewer.jsx';
 import QuestionGrid from './components/QuestionGrid.jsx';
 import StatusBar from './components/StatusBar.jsx';
+import WelcomeScreen from './components/WelcomeScreen.jsx';
 import ExamSelectorModal from './components/ExamSelectorModal.jsx';
 import ResultsModal from './components/ResultsModal.jsx';
 import StatsModal from './components/StatsModal.jsx';
@@ -20,7 +21,8 @@ export default function App() {
   const [allQuestions, setAllQuestions] = useState([]);
   const [provasList, setProvasList] = useState([]);
 
-  // Estado da Prova / Treino Atual
+  // Estado da Sessão (Tela Inicial vs Prova Ativa)
+  const [examStarted, setExamStarted] = useState(false);
   const [mode, setMode] = useState('simulado'); // 'simulado' | 'treino'
   const [currentExam, setCurrentExam] = useState(null);
   const [examQuestions, setExamQuestions] = useState([]);
@@ -32,13 +34,15 @@ export default function App() {
   const [strikethroughMap, setStrikethroughMap] = useState({});
   const [showAnswerInstant, setShowAnswerInstant] = useState(false);
 
-  // Cronômetro
-  const [timerSeconds, setTimerSeconds] = useState(5.5 * 3600); // 5h30 default
-  const [initialSeconds, setInitialSeconds] = useState(5.5 * 3600);
+  // Cronômetro (Começa Desativado / Aguardando Início)
+  const [timerSeconds, setTimerSeconds] = useState(3 * 3600);
+  const [initialSeconds, setInitialSeconds] = useState(3 * 3600);
+  const [isTimerStarted, setIsTimerStarted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
   // Modais
   const [activeModal, setActiveModal] = useState(null); // 'selector' | 'results' | 'stats' | 'help' | null
+  const [selectorInitialTab, setSelectorInitialTab] = useState('individual');
   const [resultsData, setResultsData] = useState(null);
   const [history, setHistory] = useState(() => {
     try {
@@ -65,12 +69,10 @@ export default function App() {
     async function loadData() {
       try {
         setLoading(true);
-        // Tentar carregar a base completa (5.799 questões / 112 provas)
         let resProvas = await fetch('/data/provas_completo.json');
         let resQuestoes = await fetch('/data/questoes_completo.json');
 
         if (!resProvas.ok || !resQuestoes.ok) {
-          // Fallback para a base do INEP se necessário
           resProvas = await fetch('/data/provas_inep.json');
           resQuestoes = await fetch('/data/questoes_inep.json');
         }
@@ -80,21 +82,6 @@ export default function App() {
 
         setProvasList(provasListData);
         setAllQuestions(questoesData);
-
-        // Inicializar com a primeira prova (ex: Enem 2024 - Dia 1)
-        const defaultExam = provasListData[0] || { codigo: 168, nome: 'Enem 2024 - Dia 1', dia: 1, totalQuestoes: 90 };
-        setCurrentExam(defaultExam);
-
-        const examQ = questoesData.filter(q => q.provaId === defaultExam.codigo);
-        setExamQuestions(examQ.length > 0 ? examQ : questoesData.slice(0, 90));
-        setCurrentIndex(0);
-
-        // Definir tempo oficial proporcional (~3 min por questão)
-        const count = examQ.length > 0 ? examQ.length : 90;
-        const defaultTime = Math.round(count * 3 * 60);
-        setTimerSeconds(defaultTime);
-        setInitialSeconds(defaultTime);
-
         setLoading(false);
       } catch (err) {
         console.error('Erro ao carregar banco de dados local:', err);
@@ -105,9 +92,11 @@ export default function App() {
     loadData();
   }, []);
 
-  // Cronômetro regressivo
+  // Cronômetro regressivo (SÓ CONTA SE examStarted === true E isTimerStarted === true)
   useEffect(() => {
-    if (loading || mode !== 'simulado' || isPaused || timerSeconds <= 0) return;
+    if (loading || !examStarted || mode !== 'simulado' || !isTimerStarted || isPaused || timerSeconds <= 0) {
+      return;
+    }
 
     const timer = setInterval(() => {
       setTimerSeconds(prev => {
@@ -121,7 +110,7 @@ export default function App() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [loading, mode, isPaused, timerSeconds]);
+  }, [loading, examStarted, mode, isTimerStarted, isPaused, timerSeconds]);
 
   // Iniciar Prova, Treino Misto ou Combo
   const handleStartExam = (config) => {
@@ -140,7 +129,6 @@ export default function App() {
         setCurrentExam(selected);
       }
     } else if (config.type === 'misto_disciplina') {
-      // Filtrar por disciplina e origens selecionadas
       filtered = allQuestions.filter(q => {
         if (q.disciplina !== config.disciplina) return false;
         if (q.categoriaId === 'enem' && !config.includeEnem) return false;
@@ -149,10 +137,7 @@ export default function App() {
         return true;
       });
 
-      // Embaralhar aleatoriamente para simular prova mista
       filtered = [...filtered].sort(() => Math.random() - 0.5).slice(0, config.count);
-
-      // Reatribuir numeração sequencial de 1 a N para o simulado misto
       filtered = filtered.map((q, idx) => ({ ...q, numeroQuestao: idx + 1 }));
 
       examName = `Simulado Misto: ${config.disciplina} (${filtered.length} questões multi-bancas)`;
@@ -181,6 +166,7 @@ export default function App() {
       duration = Number(config.timeOption) * 60;
     }
 
+    // Carregar a prova e inicializar estados
     setExamQuestions(filtered);
     setCurrentIndex(0);
     setUserAnswers({});
@@ -189,12 +175,37 @@ export default function App() {
     setShowAnswerInstant(false);
     setTimerSeconds(duration);
     setInitialSeconds(duration);
+    setIsTimerStarted(false); // O cronômetro começa DESATIVADO até o usuário clicar em Iniciar
     setIsPaused(false);
+    setExamStarted(true); // Exibe a prova na tela
     setActiveModal(null);
+  };
+
+  // Voltar para a tela inicial
+  const handleGoHome = () => {
+    if (examStarted && Object.keys(userAnswers).length > 0) {
+      if (!confirm('Deseja voltar à tela inicial? Seu progresso atual nesta prova continuará guardado.')) {
+        return;
+      }
+    }
+    setExamStarted(false);
+  };
+
+  // Abrir seletor com aba específica
+  const handleOpenSelector = (tab = 'individual') => {
+    setSelectorInitialTab(tab);
+    setActiveModal('selector');
+  };
+
+  // Iniciar Cronômetro
+  const handleStartTimer = () => {
+    setIsTimerStarted(true);
+    setIsPaused(false);
   };
 
   // Resetar a Prova Atual
   const handleResetCurrentExam = () => {
+    if (!examStarted) return;
     if (confirm('Deseja reiniciar a prova atual? Suas respostas serão limpas.')) {
       setUserAnswers({});
       setFlaggedSet(new Set());
@@ -202,13 +213,14 @@ export default function App() {
       setCurrentIndex(0);
       setShowAnswerInstant(false);
       setTimerSeconds(initialSeconds);
+      setIsTimerStarted(false);
       setIsPaused(false);
     }
   };
 
   // Finalizar e Corrigir
   const handleFinishExam = useCallback((tempoEsgotado = false) => {
-    if (examQuestions.length === 0) return;
+    if (!examStarted || examQuestions.length === 0) return;
 
     let correctCount = 0;
     let wrongCount = 0;
@@ -226,7 +238,7 @@ export default function App() {
       else if (isCorrect) correctCount++;
       else wrongCount++;
 
-      const area = q.areaConhecimento || 'Geral';
+      const area = q.disciplina || q.areaConhecimento || 'Geral';
       if (!areaStats[area]) {
         areaStats[area] = { area, total: 0, correct: 0 };
       }
@@ -248,7 +260,7 @@ export default function App() {
     const elapsedSeconds = initialSeconds > 0 ? initialSeconds - timerSeconds : 0;
 
     const results = {
-      examName: currentExam?.nome || 'Simulado INEP',
+      examName: currentExam?.nome || 'Simulado',
       date: new Date().toLocaleDateString('pt-BR'),
       totalQuestions: total,
       correctCount,
@@ -271,7 +283,7 @@ export default function App() {
     if (tempoEsgotado) {
       alert('O tempo oficial do simulado terminou! O gabarito foi gerado.');
     }
-  }, [examQuestions, userAnswers, currentExam, initialSeconds, timerSeconds, history]);
+  }, [examStarted, examQuestions, userAnswers, currentExam, initialSeconds, timerSeconds, history]);
 
   // Ações nas Questões
   const currentQuestion = examQuestions[currentIndex] || null;
@@ -327,6 +339,14 @@ export default function App() {
         return;
       }
 
+      if (!examStarted) {
+        if (e.key === 'F1') {
+          e.preventDefault();
+          setActiveModal('help');
+        }
+        return;
+      }
+
       const key = e.key.toUpperCase();
 
       // Alternativas A..E ou 1..5
@@ -355,7 +375,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeModal, currentIndex, examQuestions, currentQuestion]);
+  }, [activeModal, examStarted, currentIndex, examQuestions, currentQuestion]);
 
   if (loading) {
     return (
@@ -364,7 +384,7 @@ export default function App() {
           <div className="win-titlebar" style={{ marginBottom: '14px' }}>
             <span>EstudeAqui - Carregando...</span>
           </div>
-          <p style={{ marginBottom: '10px', fontSize: '13px' }}>Carregando 1.802 questões oficiais do INEP...</p>
+          <p style={{ marginBottom: '10px', fontSize: '13px' }}>Carregando 5.799 questões de 112 provas...</p>
           <div className="bevel-inset" style={{ height: '16px', backgroundColor: '#ddd', overflow: 'hidden' }}>
             <div style={{ height: '100%', width: '100%', background: 'repeating-linear-gradient(45deg, #444, #444 10px, #888 10px, #888 20px)' }} />
           </div>
@@ -378,15 +398,19 @@ export default function App() {
       <div className="win-window bevel-outset">
         {/* BARRA DE TÍTULO */}
         <TitleBar
-          title={`EstudeAqui - [${currentExam?.nome || 'Simulado INEP'}] - ${examQuestions.length} Questões`}
+          title={
+            examStarted
+              ? `EstudeAqui - [${currentExam?.nome || 'Simulado'}] - ${examQuestions.length} Questões`
+              : `EstudeAqui - Centro de Simulados & Treinamento [5.799 Questões / 112 Provas]`
+          }
           onMinimize={() => alert('Aplicativo em execução.')}
           onMaximize={() => {}}
-          onClose={() => { if (confirm('Deseja fechar o simulado?')) window.close(); }}
+          onClose={() => { if (confirm('Deseja fechar o EstudeAqui?')) window.close(); }}
         />
 
         {/* BARRA DE MENUS */}
         <MenuBar
-          onOpenExamSelector={() => setActiveModal('selector')}
+          onOpenExamSelector={() => handleOpenSelector('individual')}
           onResetExam={handleResetCurrentExam}
           onOpenStats={() => setActiveModal('stats')}
           onOpenHelp={() => setActiveModal('help')}
@@ -401,7 +425,9 @@ export default function App() {
 
         {/* BARRA DE FERRAMENTAS */}
         <Toolbar
-          onOpenExamSelector={() => setActiveModal('selector')}
+          examStarted={examStarted}
+          onGoHome={handleGoHome}
+          onOpenExamSelector={handleOpenSelector}
           onFinishExam={() => handleFinishExam(false)}
           onOpenStats={() => setActiveModal('stats')}
           onOpenHelp={() => setActiveModal('help')}
@@ -411,52 +437,70 @@ export default function App() {
           setTheme={setTheme}
           fontSize={fontSize}
           setFontSize={setFontSize}
+          isTimerStarted={isTimerStarted}
+          onStartTimer={handleStartTimer}
           isPaused={isPaused}
           onTogglePause={() => setIsPaused(prev => !prev)}
         />
 
-        {/* ÁREA PRINCIPAL DIVIDIDA */}
+        {/* ÁREA PRINCIPAL */}
         <div className="win-content">
-          <QuestionViewer
-            question={currentQuestion}
-            currentIndex={currentIndex}
-            totalQuestions={examQuestions.length}
-            selectedAnswer={currentQuestion ? userAnswers[currentQuestion.id] : null}
-            onSelectAnswer={handleSelectAnswer}
-            isFlagged={currentQuestion ? flaggedSet.has(currentQuestion.id) : false}
-            onToggleFlag={handleToggleFlag}
-            strikethroughSet={currentQuestion ? strikethroughMap[currentQuestion.id] : null}
-            onToggleStrike={handleToggleStrike}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            hasPrev={currentIndex > 0}
-            hasNext={currentIndex < examQuestions.length - 1}
-            mode={mode}
-            showAnswerInstant={showAnswerInstant}
-            onCheckAnswer={() => setShowAnswerInstant(prev => !prev)}
-          />
+          {!examStarted ? (
+            /* TELA INICIAL QUANDO NENHUMA PROVA ESTÁ EM ANDAMENTO */
+            <WelcomeScreen
+              provasCount={provasList.length}
+              questionsCount={allQuestions.length}
+              onOpenExamSelector={handleOpenSelector}
+              onOpenStats={() => setActiveModal('stats')}
+              onOpenHelp={() => setActiveModal('help')}
+            />
+          ) : (
+            /* VISUALIZADOR DA PROVA EM ANDAMENTO + GRADE LATERAL */
+            <>
+              <QuestionViewer
+                question={currentQuestion}
+                currentIndex={currentIndex}
+                totalQuestions={examQuestions.length}
+                selectedAnswer={currentQuestion ? userAnswers[currentQuestion.id] : null}
+                onSelectAnswer={handleSelectAnswer}
+                isFlagged={currentQuestion ? flaggedSet.has(currentQuestion.id) : false}
+                onToggleFlag={handleToggleFlag}
+                strikethroughSet={currentQuestion ? strikethroughMap[currentQuestion.id] : null}
+                onToggleStrike={handleToggleStrike}
+                onPrev={handlePrev}
+                onNext={handleNext}
+                hasPrev={currentIndex > 0}
+                hasNext={currentIndex < examQuestions.length - 1}
+                mode={mode}
+                showAnswerInstant={showAnswerInstant}
+                onCheckAnswer={() => setShowAnswerInstant(prev => !prev)}
+              />
 
-          <QuestionGrid
-            questions={examQuestions}
-            currentIndex={currentIndex}
-            onSelectIndex={(idx) => {
-              setCurrentIndex(idx);
-              setShowAnswerInstant(false);
-            }}
-            userAnswers={userAnswers}
-            flaggedSet={flaggedSet}
-            timerSeconds={timerSeconds}
-            isPaused={isPaused}
-            onTogglePause={() => setIsPaused(prev => !prev)}
-            mode={mode}
-          />
+              <QuestionGrid
+                questions={examQuestions}
+                currentIndex={currentIndex}
+                onSelectIndex={(idx) => {
+                  setCurrentIndex(idx);
+                  setShowAnswerInstant(false);
+                }}
+                userAnswers={userAnswers}
+                flaggedSet={flaggedSet}
+                timerSeconds={timerSeconds}
+                isTimerStarted={isTimerStarted}
+                onStartTimer={handleStartTimer}
+                isPaused={isPaused}
+                onTogglePause={() => setIsPaused(prev => !prev)}
+                mode={mode}
+              />
+            </>
+          )}
         </div>
 
         {/* BARRA DE STATUS INFERIOR */}
         <StatusBar
-          currentIndex={currentIndex}
-          totalQuestions={examQuestions.length}
-          currentExamName={currentExam?.nome}
+          currentIndex={examStarted ? currentIndex : 0}
+          totalQuestions={examStarted ? examQuestions.length : allQuestions.length}
+          currentExamName={examStarted ? currentExam?.nome : 'Pronto para Iniciar'}
           answeredCount={Object.keys(userAnswers).length}
           flaggedCount={flaggedSet.size}
           timerSeconds={timerSeconds}
@@ -470,6 +514,7 @@ export default function App() {
         <ExamSelectorModal
           provasList={provasList}
           allQuestions={allQuestions}
+          initialTab={selectorInitialTab}
           onStartExam={handleStartExam}
           onClose={() => setActiveModal(null)}
         />
@@ -483,7 +528,7 @@ export default function App() {
             setCurrentIndex(idx);
             setShowAnswerInstant(true);
           }}
-          onNewExam={() => setActiveModal('selector')}
+          onNewExam={() => handleOpenSelector('individual')}
           onClose={() => setActiveModal(null)}
         />
       )}

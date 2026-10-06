@@ -3,11 +3,12 @@ import React, { useState, useMemo } from 'react';
 export default function ExamSelectorModal({
   provasList,
   allQuestions,
+  initialTab = 'individual',
   onStartExam,
   onClose
 }) {
   // Modo de seleção via Radio buttons conforme solicitado pelo usuário
-  const [selectionType, setSelectionType] = useState('individual'); // 'individual' | 'misto_disciplina' | 'combo_provas'
+  const [selectionType, setSelectionType] = useState(initialTab || 'individual'); // 'individual' | 'misto_disciplina' | 'combo_provas'
 
   // MODO 1: PROVA ESPECÍFICA
   const [categoryFilter, setCategoryFilter] = useState('todas');

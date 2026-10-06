@@ -7,6 +7,8 @@ export default function QuestionGrid({
   userAnswers,
   flaggedSet,
   timerSeconds,
+  isTimerStarted,
+  onStartTimer,
   isPaused,
   onTogglePause,
   mode
@@ -28,17 +30,38 @@ export default function QuestionGrid({
       {/* CRONÔMETRO (MODO SIMULADO) */}
       {mode === 'simulado' && (
         <div className="timer-box bevel-inset">
-          <div className="timer-label">Tempo Restante</div>
-          <div className="timer-digits" style={{ opacity: isPaused ? 0.4 : 1 }}>
+          <div className="timer-label">
+            {isTimerStarted ? (isPaused ? 'CRONÔMETRO PAUSADO' : 'TEMPO EM ANDAMENTO') : 'TEMPO CONFIGURADO'}
+          </div>
+          <div
+            className="timer-digits"
+            style={{
+              opacity: !isTimerStarted ? 0.75 : isPaused ? 0.4 : 1,
+              color: !isTimerStarted ? 'var(--text-main)' : undefined
+            }}
+          >
             {formatTime(timerSeconds)}
           </div>
-          <button
-            className="win-btn"
-            style={{ width: '100%', marginTop: '6px' }}
-            onClick={onTogglePause}
-          >
-            <span>{isPaused ? '▶ Continuar' : '⏸ Pausar'}</span>
-          </button>
+
+          {!isTimerStarted ? (
+            <button
+              className="win-btn win-btn-primary"
+              style={{ width: '100%', marginTop: '6px', fontWeight: 'bold' }}
+              onClick={onStartTimer}
+              title="Clique para iniciar a contagem regressiva do tempo oficial"
+            >
+              <span>▶ Iniciar Cronômetro</span>
+            </button>
+          ) : (
+            <button
+              className="win-btn"
+              style={{ width: '100%', marginTop: '6px' }}
+              onClick={onTogglePause}
+              title={isPaused ? 'Continuar tempo' : 'Pausar tempo'}
+            >
+              <span>{isPaused ? '▶ Continuar' : '⏸ Pausar'}</span>
+            </button>
+          )}
         </div>
       )}
 

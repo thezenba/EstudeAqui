@@ -1,6 +1,8 @@
 import React from 'react';
 
 export default function Toolbar({
+  examStarted,
+  onGoHome,
   onOpenExamSelector,
   onFinishExam,
   onOpenStats,
@@ -11,6 +13,8 @@ export default function Toolbar({
   setTheme,
   fontSize,
   setFontSize,
+  isTimerStarted,
+  onStartTimer,
   isPaused,
   onTogglePause
 }) {
@@ -39,7 +43,17 @@ export default function Toolbar({
 
   return (
     <div className="win-toolbar">
-      <button className="win-btn win-btn-primary" onClick={onOpenExamSelector} title="Selecionar uma nova prova ou treino">
+      {/* BOTÃO TELA INICIAL */}
+      <button
+        className={`win-btn ${!examStarted ? 'active' : ''}`}
+        onClick={onGoHome}
+        title="Voltar à tela inicial de seleção e boas-vindas"
+      >
+        <span>🏠</span>
+        <span>Início</span>
+      </button>
+
+      <button className="win-btn win-btn-primary" onClick={() => onOpenExamSelector('individual')} title="Selecionar uma nova prova ou treino">
         <span>📋</span>
         <span>Selecionar Prova</span>
       </button>
@@ -64,17 +78,32 @@ export default function Toolbar({
 
       <div className="win-toolbar-separator" />
 
-      {mode === 'simulado' && (
-        <button className="win-btn" onClick={onTogglePause} title={isPaused ? 'Retomar tempo' : 'Pausar tempo'}>
-          <span>{isPaused ? '▶' : '⏸'}</span>
-          <span>{isPaused ? 'Retomar' : 'Pausar'}</span>
-        </button>
+      {/* CONTROLE DE TEMPO (CRONÔMETRO) */}
+      {examStarted && mode === 'simulado' && (
+        !isTimerStarted ? (
+          <button
+            className="win-btn win-btn-primary"
+            onClick={onStartTimer}
+            title="Iniciar a contagem do cronômetro"
+            style={{ fontWeight: 'bold' }}
+          >
+            <span>▶</span>
+            <span>Iniciar Tempo</span>
+          </button>
+        ) : (
+          <button className="win-btn" onClick={onTogglePause} title={isPaused ? 'Retomar tempo' : 'Pausar tempo'}>
+            <span>{isPaused ? '▶' : '⏸'}</span>
+            <span>{isPaused ? 'Retomar' : 'Pausar'}</span>
+          </button>
+        )
       )}
 
-      <button className="win-btn" onClick={onFinishExam} title="Concluir simulado e ver nota/relatório">
-        <span>🏁</span>
-        <span>Finalizar Prova</span>
-      </button>
+      {examStarted && (
+        <button className="win-btn" onClick={onFinishExam} title="Concluir simulado e ver nota/relatório">
+          <span>🏁</span>
+          <span>Finalizar Prova</span>
+        </button>
+      )}
 
       <div className="win-toolbar-separator" />
 
