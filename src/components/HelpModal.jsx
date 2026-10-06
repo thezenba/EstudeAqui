@@ -45,9 +45,18 @@ export default function HelpModal({ onClose }) {
           </fieldset>
 
           <fieldset className="fieldset-box">
-            <legend>Sobre a Base de Questões do INEP</legend>
+            <legend>Sobre a Base de Questões Completa</legend>
             <p style={{ fontSize: '12px', lineHeight: '1.5' }}>
-              Esta aplicação contém <b>1.802 questões oficiais do ENEM</b> (2015 a 2024, cadernos Azul e Amarelo, Dia 1 e Dia 2), com gabarito oficial e imagens originais. Todo o banco funciona localmente no seu computador.
+              Esta aplicação contém <b>5.799 questões catalogadas em 112 provas oficiais</b>:
+            </p>
+            <ul style={{ paddingLeft: '18px', fontSize: '12px', lineHeight: '1.5', marginTop: '4px' }}>
+              <li><b>ENEM / INEP:</b> Todas as provas de 2015 a 2024 (1.622 questões)</li>
+              <li><b>Vestibulares Tradicionais:</b> ITA, UFU, IFTM, USP, CEFETMINAS (1.857 questões)</li>
+              <li><b>Concursos Públicos:</b> FGV, CESPE, TRT, Carreiras Policiais (Perito, Delegado), Bancos (997 questões)</li>
+              <li><b>DETRAN:</b> Legislação de Trânsito, Mecânica e Primeiros Socorros (810 questões)</li>
+            </ul>
+            <p style={{ fontSize: '12px', lineHeight: '1.5', marginTop: '6px' }}>
+              Você pode fazer provas individuais ou gerar <b>Simulados Mistos</b> mesclando questões de mesma disciplina vindas de várias bancas diferentes!
             </p>
           </fieldset>
         </div>

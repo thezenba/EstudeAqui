@@ -31,7 +31,11 @@ export default function QuestionViewer({
   const {
     numeroQuestao,
     materia,
+    materiaOriginal,
     areaConhecimento,
+    disciplina,
+    banca,
+    categoriaNome,
     provaNome,
     ano,
     enunciado,
@@ -42,6 +46,7 @@ export default function QuestionViewer({
 
   const isChecked = mode === 'treino' && showAnswerInstant;
   const isCorrect = selectedAnswer && selectedAnswer === gabarito;
+  const tagDisciplina = disciplina || areaConhecimento || materia || materiaOriginal || 'Geral';
 
   return (
     <div className="study-main-area bevel-inset">
@@ -49,9 +54,12 @@ export default function QuestionViewer({
       <div className="question-header">
         <div className="question-badge-group">
           <span className="win-badge">Questão {numeroQuestao || currentIndex + 1} de {totalQuestions}</span>
-          <span className="win-badge">{areaConhecimento}</span>
-          {materia && materia !== areaConhecimento && (
-            <span className="win-badge" style={{ opacity: 0.85 }}>{materia}</span>
+          <span className="win-badge" style={{ fontWeight: 'bold' }}>{tagDisciplina}</span>
+          {categoriaNome && (
+            <span className="win-badge" style={{ borderStyle: 'solid' }}>{categoriaNome}</span>
+          )}
+          {banca && banca !== 'Não informada' && (
+            <span className="win-badge" style={{ opacity: 0.9 }}>Banca: {banca}</span>
           )}
           <span className="win-badge" style={{ borderStyle: 'dotted' }}>{provaNome}</span>
         </div>

@@ -65,10 +65,15 @@ export default function App() {
     async function loadData() {
       try {
         setLoading(true);
-        const [resProvas, resQuestoes] = await Promise.all([
-          fetch('/data/provas_inep.json'),
-          fetch('/data/questoes_inep.json')
-        ]);
+        // Tentar carregar a base completa (5.799 questões / 112 provas)
+        let resProvas = await fetch('/data/provas_completo.json');
+        let resQuestoes = await fetch('/data/questoes_completo.json');
+
+        if (!resProvas.ok || !resQuestoes.ok) {
+          // Fallback para a base do INEP se necessário
+          resProvas = await fetch('/data/provas_inep.json');
+          resQuestoes = await fetch('/data/questoes_inep.json');
+        }
 
         const provasListData = await resProvas.json();
         const questoesData = await resQuestoes.json();
@@ -76,16 +81,17 @@ export default function App() {
         setProvasList(provasListData);
         setAllQuestions(questoesData);
 
-        // Inicializar com a primeira prova mais recente (ex: Enem 2024 - Dia 1)
-        const defaultExam = provasListData[0] || { codigo: 168, nome: 'Enem 2024 - Dia 1', dia: 1 };
+        // Inicializar com a primeira prova (ex: Enem 2024 - Dia 1)
+        const defaultExam = provasListData[0] || { codigo: 168, nome: 'Enem 2024 - Dia 1', dia: 1, totalQuestoes: 90 };
         setCurrentExam(defaultExam);
 
         const examQ = questoesData.filter(q => q.provaId === defaultExam.codigo);
-        setExamQuestions(examQ);
+        setExamQuestions(examQ.length > 0 ? examQ : questoesData.slice(0, 90));
         setCurrentIndex(0);
 
-        // Definir tempo oficial
-        const defaultTime = defaultExam.dia === 1 ? 5.5 * 3600 : 5.0 * 3600;
+        // Definir tempo oficial proporcional (~3 min por questão)
+        const count = examQ.length > 0 ? examQ.length : 90;
+        const defaultTime = Math.round(count * 3 * 60);
         setTimerSeconds(defaultTime);
         setInitialSeconds(defaultTime);
 
@@ -117,50 +123,58 @@ export default function App() {
     return () => clearInterval(timer);
   }, [loading, mode, isPaused, timerSeconds]);
 
-  // Iniciar Prova ou Treino Filtrado
+  // Iniciar Prova, Treino Misto ou Combo
   const handleStartExam = (config) => {
     let filtered = [];
     let examName = '';
-    let duration = 5.5 * 3600;
+    let duration = 0;
 
-    if (config.type === 'oficial') {
+    if (config.type === 'individual') {
       const selected = provasList.find(p => p.codigo === config.examCode) || provasList[0];
       filtered = allQuestions.filter(q => q.provaId === selected.codigo);
-      examName = selected.nome;
+      examName = `${selected.nome} (${selected.banca})`;
       setCurrentExam(selected);
 
       if (config.timeOption === 'oficial') {
-        duration = selected.dia === 1 ? 5.5 * 3600 : 5.0 * 3600;
-      } else if (config.timeOption === '180') {
-        duration = 3 * 3600;
-      } else if (config.timeOption === '90') {
-        duration = 1.5 * 3600;
-      } else if (config.timeOption === '45') {
-        duration = 45 * 60;
-      } else {
-        duration = 0; // livre
-      }
-    } else {
-      // Filtrar por Área
-      filtered = allQuestions.filter(q => q.areaConhecimento === config.area);
-
-      if (config.year === 'recentes') {
-        filtered = filtered.filter(q => q.ano >= 2020);
-      } else if (config.year !== 'todos') {
-        filtered = filtered.filter(q => q.ano === Number(config.year));
-      }
-
-      // Embaralhar para treino se solicitado
-      filtered = [...filtered].sort(() => Math.random() - 0.5).slice(0, config.count);
-      examName = `Treino: ${config.area} (${filtered.length} questões)`;
-      setCurrentExam({ codigo: 0, nome: examName, dia: 1 });
-
-      if (config.timeOption === 'oficial') {
-        duration = Math.round((filtered.length / 90) * 5 * 3600);
+        duration = Math.round(filtered.length * 3 * 60);
       } else if (config.timeOption !== 'livre') {
         duration = Number(config.timeOption) * 60;
-      } else {
-        duration = 0;
+      }
+    } else if (config.type === 'misto_disciplina') {
+      // Filtrar por disciplina e origens selecionadas
+      filtered = allQuestions.filter(q => {
+        if (q.disciplina !== config.disciplina) return false;
+        if (q.categoriaId === 'enem' && !config.includeEnem) return false;
+        if (q.categoriaId === 'vestibular' && !config.includeVestibulares) return false;
+        if (q.categoriaId === 'concurso' && !config.includeConcursos) return false;
+        return true;
+      });
+
+      // Embaralhar aleatoriamente para simular prova mista
+      filtered = [...filtered].sort(() => Math.random() - 0.5).slice(0, config.count);
+
+      // Reatribuir numeração sequencial de 1 a N para o simulado misto
+      filtered = filtered.map((q, idx) => ({ ...q, numeroQuestao: idx + 1 }));
+
+      examName = `Simulado Misto: ${config.disciplina} (${filtered.length} questões multi-bancas)`;
+      setCurrentExam({ codigo: 0, nome: examName, dia: 1, banca: 'Multi-Bancas' });
+
+      if (config.timeOption === 'oficial') {
+        duration = Math.round(filtered.length * 3 * 60);
+      } else if (config.timeOption !== 'livre') {
+        duration = Number(config.timeOption) * 60;
+      }
+    } else if (config.type === 'combo_provas') {
+      const selectedExams = provasList.filter(p => config.examCodes.includes(p.codigo));
+      filtered = allQuestions.filter(q => config.examCodes.includes(q.provaId));
+
+      examName = `Combo (${selectedExams.length} Provas: ${selectedExams.map(p => p.nome).slice(0, 2).join(', ')}${selectedExams.length > 2 ? '...' : ''})`;
+      setCurrentExam({ codigo: 0, nome: examName, dia: 1, banca: 'Combo Personalizado' });
+
+      if (config.timeOption === 'oficial') {
+        duration = Math.round(filtered.length * 3 * 60);
+      } else if (config.timeOption !== 'livre') {
+        duration = Number(config.timeOption) * 60;
       }
     }
 
@@ -452,6 +466,7 @@ export default function App() {
       {activeModal === 'selector' && (
         <ExamSelectorModal
           provasList={provasList}
+          allQuestions={allQuestions}
           onStartExam={handleStartExam}
           onClose={() => setActiveModal(null)}
         />

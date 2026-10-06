@@ -40,8 +40,8 @@ export default function StatusBar({
         <span>Marcadas: <b>{flaggedCount}</b></span>
       </div>
 
-      <div className="status-pane bevel-inset" style={{ minWidth: '170px' }}>
-        <span>Banco INEP: <b>1.802 questões</b></span>
+      <div className="status-pane bevel-inset" style={{ minWidth: '190px' }}>
+        <span>Banco Total: <b>5.799 q. (112 Provas)</b></span>
       </div>
     </div>
   );
