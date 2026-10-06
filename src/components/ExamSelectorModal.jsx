@@ -1,4 +1,71 @@
-import React, { useState, useMemo } from 'react';
+// Função auxiliar para encurtar e padronizar nomes de bancas longas
+function cleanBanca(banca) {
+  if (!banca) return '';
+  if (banca.includes('INEP') || banca.includes('Instituto Nacional de Estudos')) return 'INEP';
+  if (banca.includes('CEFETMINAS')) return 'CEFETMINAS';
+  if (banca.includes('Cesgranrio')) return 'Cesgranrio';
+  if (banca.includes('Polícia Científica')) return 'Polícia Científica';
+  if (banca.includes('DIRPS')) return 'DIRPS / UFU';
+  if (banca.includes('PROGRAD')) return 'PROGRAD / UFU';
+  return banca;
+}
+
+// Formatar minutos em formato amigável (ex: 4h 30min)
+function formatHoursMinutes(totalMinutes) {
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  if (h === 0) return `${m}min`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}min`;
+}
+
+// Metadados das categorias e ordenação fixa
+const CATEGORY_META = {
+  enem: {
+    id: 'enem',
+    label: 'ENEM / INEP',
+    groupLabel: '🎓 ENEM — Exame Nacional do Ensino Médio',
+    shortBadge: 'ENEM',
+    order: 1
+  },
+  vestibular: {
+    id: 'vestibular',
+    label: 'Vestibulares (ITA, UFU, IFTM, USP...)',
+    groupLabel: '🏛️ Vestibulares & Institutos Federais (ITA, UFU, IFTM, USP...)',
+    shortBadge: 'Vestibular',
+    order: 2
+  },
+  concurso: {
+    id: 'concurso',
+    label: 'Concursos Públicos (FGV, CESPE, Polícias...)',
+    groupLabel: '⚖️ Concursos Públicos (FGV, CESPE, FUNDATEC, Polícias...)',
+    shortBadge: 'Concurso',
+    order: 3
+  },
+  habilitacao: {
+    id: 'habilitacao',
+    label: 'DETRAN & Habilitação (26 Estados)',
+    groupLabel: '🚗 DETRAN & Legislação de Trânsito (26 Estados)',
+    shortBadge: 'DETRAN',
+    order: 4
+  },
+  outros: {
+    id: 'outros',
+    label: 'Provas Temáticas & Ensino Fundamental/Médio',
+    groupLabel: '📖 Provas Temáticas & Ensino Fundamental/Médio',
+    shortBadge: 'Temático',
+    order: 5
+  }
+};
+
+const CATEGORY_ORDER = ['enem', 'vestibular', 'concurso', 'habilitacao', 'outros'];
+
+// Formatar o texto de cada item no dropdown
+function formatExamOption(p) {
+  const shortB = cleanBanca(p.banca);
+  const anoPrefix = p.ano ? `[${p.ano}] ` : '';
+  return `${anoPrefix}${p.nome} — ${p.totalQuestoes} questões (${shortB})`;
+}
 
 export default function ExamSelectorModal({
   provasList,
@@ -12,6 +79,7 @@ export default function ExamSelectorModal({
 
   // MODO 1: PROVA ESPECÍFICA
   const [categoryFilter, setCategoryFilter] = useState('todas');
+  const [sortBy, setSortBy] = useState('categoria_ano'); // 'categoria_ano' | 'ano_desc' | 'nome_asc' | 'questoes_desc'
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedExamCode, setSelectedExamCode] = useState(() => provasList[0]?.codigo || 168);
 
@@ -30,12 +98,12 @@ export default function ExamSelectorModal({
 
   // Categorias disponíveis
   const categorias = [
-    { id: 'todas', label: 'Todas as Categorias' },
-    { id: 'enem', label: 'ENEM / INEP' },
-    { id: 'vestibular', label: 'Vestibulares (ITA, UFU, IFTM, USP...)' },
-    { id: 'concurso', label: 'Concursos Públicos (FGV, CESPE, Polícias...)' },
-    { id: 'habilitacao', label: 'DETRAN & Habilitação' },
-    { id: 'outros', label: 'Outros Exames' }
+    { id: 'todas', label: 'Todas as Categorias (Agrupadas com Subtítulos)' },
+    { id: 'enem', label: '🎓 ENEM / INEP (18 Cadernos Oficiais)' },
+    { id: 'vestibular', label: '🏛️ Vestibulares (ITA, UFU, IFTM, USP...)' },
+    { id: 'concurso', label: '⚖️ Concursos Públicos (FGV, CESPE, Polícias...)' },
+    { id: 'habilitacao', label: '🚗 DETRAN & Habilitação (26 Estados)' },
+    { id: 'outros', label: '📖 Provas Temáticas & Ensino' }
   ];
 
   // Disciplinas disponíveis para Simulado Misto
@@ -54,9 +122,10 @@ export default function ExamSelectorModal({
     { nome: 'Conhecimentos Específicos', desc: 'Provas Especializadas' }
   ];
 
-  // Provas filtradas para Prova Específica
-  const filteredProvas = useMemo(() => {
-    return provasList.filter(p => {
+  // Provas filtradas e devidamente ordenadas
+  const processedProvas = useMemo(() => {
+    // 1. Filtragem por categoria e busca
+    const filtered = provasList.filter(p => {
       const matchCat = categoryFilter === 'todas' || p.categoriaId === categoryFilter;
       const matchSearch = searchTerm === '' ||
         p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -64,15 +133,74 @@ export default function ExamSelectorModal({
         String(p.ano).includes(searchTerm);
       return matchCat && matchSearch;
     });
-  }, [provasList, categoryFilter, searchTerm]);
+
+    // 2. Ordenação inteligente
+    return [...filtered].sort((a, b) => {
+      if (sortBy === 'categoria_ano') {
+        // Ordenar primeiro pela ordem fixa de categorias
+        const orderA = CATEGORY_META[a.categoriaId]?.order || 99;
+        const orderB = CATEGORY_META[b.categoriaId]?.order || 99;
+        if (orderA !== orderB) return orderA - orderB;
+
+        // Dentro da mesma categoria: Ano decrescente (mais recentes primeiro)
+        if ((b.ano || 0) !== (a.ano || 0)) return (b.ano || 0) - (a.ano || 0);
+
+        // Mesmo ano: Ordenação alfabética natural (ex: Dia 1 antes de Dia 2)
+        return a.nome.localeCompare(b.nome, 'pt-BR', { numeric: true, sensitivity: 'base' });
+      }
+
+      if (sortBy === 'ano_desc') {
+        if ((b.ano || 0) !== (a.ano || 0)) return (b.ano || 0) - (a.ano || 0);
+        return a.nome.localeCompare(b.nome, 'pt-BR', { numeric: true });
+      }
+
+      if (sortBy === 'nome_asc') {
+        return a.nome.localeCompare(b.nome, 'pt-BR', { numeric: true });
+      }
+
+      if (sortBy === 'questoes_desc') {
+        if ((b.totalQuestoes || 0) !== (a.totalQuestoes || 0)) {
+          return (b.totalQuestoes || 0) - (a.totalQuestoes || 0);
+        }
+        return (b.ano || 0) - (a.ano || 0);
+      }
+
+      return 0;
+    });
+  }, [provasList, categoryFilter, searchTerm, sortBy]);
+
+  // Se categoryFilter === 'todas' e sortBy === 'categoria_ano', montar optgroups por categoria
+  const groupedProvas = useMemo(() => {
+    if (categoryFilter !== 'todas' || sortBy !== 'categoria_ano') {
+      return null;
+    }
+
+    const groups = [];
+    CATEGORY_ORDER.forEach(catId => {
+      const items = processedProvas.filter(p => p.categoriaId === catId);
+      if (items.length > 0) {
+        groups.push({
+          id: catId,
+          label: CATEGORY_META[catId]?.groupLabel || catId,
+          items
+        });
+      }
+    });
+    return groups;
+  }, [processedProvas, categoryFilter, sortBy]);
 
   // Atualizar seleção caso o filtro exclua a prova atual
   const effectiveExamCode = useMemo(() => {
-    if (filteredProvas.some(p => Number(p.codigo) === Number(selectedExamCode))) {
+    if (processedProvas.some(p => Number(p.codigo) === Number(selectedExamCode))) {
       return Number(selectedExamCode);
     }
-    return filteredProvas[0] ? Number(filteredProvas[0].codigo) : Number(selectedExamCode);
-  }, [filteredProvas, selectedExamCode]);
+    return processedProvas[0] ? Number(processedProvas[0].codigo) : Number(selectedExamCode);
+  }, [processedProvas, selectedExamCode]);
+
+  // Objeto completo da prova atualmente selecionada para exibir detalhes
+  const selectedExamObj = useMemo(() => {
+    return provasList.find(p => Number(p.codigo) === Number(effectiveExamCode));
+  }, [provasList, effectiveExamCode]);
 
   // Contagem de questões disponíveis para o Simulado Misto selecionado
   const mixedAvailableCount = useMemo(() => {
@@ -127,7 +255,7 @@ export default function ExamSelectorModal({
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="win-dialog bevel-outset" style={{ maxWidth: '780px' }} onClick={(e) => e.stopPropagation()}>
+      <div className="win-dialog bevel-outset" style={{ maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
         {/* TÍTULO */}
         <div className="win-titlebar">
           <span className="win-title-left">Configurar Prova ou Simulado [Banco: 5.799 Questões / 112 Provas]</span>
@@ -135,7 +263,7 @@ export default function ExamSelectorModal({
         </div>
 
         {/* CORPO DO DIÁLOGO */}
-        <div className="win-dialog-body" style={{ maxHeight: '72vh' }}>
+        <div className="win-dialog-body" style={{ maxHeight: '74vh' }}>
           {/* MODO DE SELEÇÃO */}
           <fieldset className="fieldset-box">
             <legend>Modo de Seleção</legend>
@@ -175,7 +303,7 @@ export default function ExamSelectorModal({
           {/* MODO 1: PROVA ESPECÍFICA */}
           {selectionType === 'individual' && (
             <fieldset className="fieldset-box">
-              <legend>Selecione a Prova Específica ({filteredProvas.length} de {provasList.length} disponíveis)</legend>
+              <legend>Selecione a Prova Específica ({processedProvas.length} de {provasList.length} disponíveis)</legend>
 
               {/* Filtro por Categoria */}
               <div className="form-row">
@@ -191,40 +319,115 @@ export default function ExamSelectorModal({
                 </select>
               </div>
 
-              {/* Busca por texto */}
-              <div className="form-row">
-                <label style={{ width: '130px', fontWeight: 'bold' }}>Buscar Prova:</label>
-                <input
-                  type="text"
-                  className="win-input"
-                  placeholder="Filtrar por nome, banca ou ano (ex: IFTM, ITA, UFU, FGV, 2024, Polícia)..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                {searchTerm && (
-                  <button className="win-btn" onClick={() => setSearchTerm('')} style={{ height: '26px' }}>Limpar</button>
-                )}
+              {/* Linha com Ordenação e Busca */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {/* Ordenar por */}
+                <div className="form-row" style={{ margin: 0 }}>
+                  <label style={{ width: '130px', fontWeight: 'bold' }}>Ordenar por:</label>
+                  <select
+                    className="win-select"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                  >
+                    <option value="categoria_ano">Por Categoria (Mais Recentes)</option>
+                    <option value="ano_desc">Ano (Mais recentes primeiro)</option>
+                    <option value="nome_asc">Nome da Prova (A - Z)</option>
+                    <option value="questoes_desc">Qtd. de Questões (Maior 1º)</option>
+                  </select>
+                </div>
+
+                {/* Busca por texto */}
+                <div className="form-row" style={{ margin: 0 }}>
+                  <label style={{ width: '90px', fontWeight: 'bold' }}>Buscar:</label>
+                  <div style={{ display: 'flex', gap: '4px', flex: 1 }}>
+                    <input
+                      type="text"
+                      className="win-input"
+                      placeholder="Filtrar nome, banca ou ano..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      style={{ flex: 1 }}
+                    />
+                    {searchTerm && (
+                      <button className="win-btn" onClick={() => setSearchTerm('')} style={{ height: '24px', padding: '0 6px' }}>✕</button>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Select da Prova */}
-              <div className="form-row" style={{ marginTop: '8px' }}>
+              {/* Select da Prova com Suporte a Optgroups e Formatação Clara */}
+              <div className="form-row" style={{ marginTop: '10px' }}>
                 <label style={{ width: '130px', fontWeight: 'bold' }}>Prova / Caderno:</label>
                 <select
                   className="win-select"
                   value={effectiveExamCode}
                   onChange={(e) => setSelectedExamCode(Number(e.target.value))}
-                  style={{ fontWeight: '500' }}
+                  style={{ fontWeight: '500', minHeight: '30px' }}
                 >
-                  {filteredProvas.map(p => (
-                    <option key={p.codigo} value={p.codigo}>
-                      {p.nome} ({p.totalQuestoes} questões — {p.banca})
-                    </option>
-                  ))}
+                  {groupedProvas ? (
+                    groupedProvas.map(group => (
+                      <optgroup
+                        key={group.id}
+                        label={`${group.label} (${group.items.length} ${group.items.length === 1 ? 'prova' : 'provas'})`}
+                      >
+                        {group.items.map(p => (
+                          <option key={p.codigo} value={p.codigo}>
+                            {formatExamOption(p)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))
+                  ) : (
+                    processedProvas.map(p => (
+                      <option key={p.codigo} value={p.codigo}>
+                        {formatExamOption(p)}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
+              {/* Cartão de Detalhes da Prova Selecionada */}
+              {selectedExamObj && (
+                <div
+                  className="bevel-inset"
+                  style={{
+                    marginTop: '8px',
+                    padding: '8px 12px',
+                    backgroundColor: 'var(--bg-card)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    fontSize: '12px'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>
+                      {selectedExamObj.nome}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        padding: '2px 8px',
+                        border: '1px solid var(--border-dark)',
+                        backgroundColor: 'var(--bg-main)',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {CATEGORY_META[selectedExamObj.categoriaId]?.shortBadge || 'PROVA'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '11px', flexWrap: 'wrap', marginTop: '2px' }}>
+                    <span>Ano Oficial: <b>{selectedExamObj.ano || '—'}</b></span>
+                    <span>Banca Examinadora: <b>{cleanBanca(selectedExamObj.banca)}</b></span>
+                    <span>Total de Questões: <b>{selectedExamObj.totalQuestoes}</b></span>
+                    <span>Tempo Oficial Sugerido: <b>~{formatHoursMinutes(selectedExamObj.totalQuestoes * 3)}</b></span>
+                  </div>
+                </div>
+              )}
+
               <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
-                * Carrega as questões na ordem original do caderno oficial com gabarito.
+                * Carrega todas as questões na ordem original do caderno oficial com gabaritos confirmados.
               </p>
             </fieldset>
           )}
@@ -313,33 +516,60 @@ export default function ExamSelectorModal({
                 Marque duas ou mais provas abaixo para mesclar em um único simulado unificado:
               </p>
 
-              <div style={{ maxHeight: '200px', overflowY: 'auto', border: '2px solid var(--border-dark)', backgroundColor: 'var(--bg-card)', padding: '4px' }}>
-                {provasList.map(p => {
-                  const isChecked = selectedExamCodesCombo.has(Number(p.codigo));
+              <div style={{ maxHeight: '220px', overflowY: 'auto', border: '2px solid var(--border-dark)', backgroundColor: 'var(--bg-card)', padding: '4px' }}>
+                {CATEGORY_ORDER.map(catId => {
+                  const catItems = provasList
+                    .filter(p => p.categoriaId === catId)
+                    .sort((a, b) => ((b.ano || 0) - (a.ano || 0)) || a.nome.localeCompare(b.nome, 'pt-BR', { numeric: true }));
+                  if (catItems.length === 0) return null;
                   return (
-                    <label
-                      key={p.codigo}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '4px 8px',
-                        borderBottom: '1px solid var(--border-medium)',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        backgroundColor: isChecked ? 'var(--btn-hover)' : 'transparent'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => handleToggleComboExam(p.codigo)}
-                        />
-                        <span><b>{p.nome}</b> <span style={{ opacity: 0.8 }}>({p.banca})</span></span>
+                    <div key={catId} style={{ marginBottom: '8px' }}>
+                      <div
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          padding: '3px 6px',
+                          backgroundColor: 'var(--bg-main)',
+                          borderBottom: '1px solid var(--border-medium)',
+                          position: 'sticky',
+                          top: 0,
+                          zIndex: 1
+                        }}
+                      >
+                        {CATEGORY_META[catId]?.groupLabel || catId} ({catItems.length} provas)
                       </div>
-                      <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{p.totalQuestoes} q.</span>
-                    </label>
+                      {catItems.map(p => {
+                        const isChecked = selectedExamCodesCombo.has(Number(p.codigo));
+                        return (
+                          <label
+                            key={p.codigo}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '4px 8px',
+                              borderBottom: '1px solid var(--border-medium)',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              backgroundColor: isChecked ? 'var(--btn-hover)' : 'transparent'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => handleToggleComboExam(p.codigo)}
+                              />
+                              <span>
+                                {p.ano ? <b>[{p.ano}] </b> : null}
+                                <b>{p.nome}</b> <span style={{ opacity: 0.8 }}>({cleanBanca(p.banca)})</span>
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{p.totalQuestoes} q.</span>
+                          </label>
+                        );
+                      })}
+                    </div>
                   );
                 })}
               </div>
