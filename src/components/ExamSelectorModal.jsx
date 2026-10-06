@@ -1,3 +1,5 @@
+import React, { useState, useMemo } from 'react';
+
 // Função auxiliar para encurtar e padronizar nomes de bancas longas
 function cleanBanca(banca) {
   if (!banca) return '';
