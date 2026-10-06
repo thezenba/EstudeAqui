@@ -1,0 +1,922 @@
+/* ==========================================================================
+   ESTUDEAQUI - SISTEMA DE DESIGN WINDOWS XP RETRO (PRETO E BRANCO)
+   Suporte a Baixo Contraste, Alto Contraste Claro, Modo Escuro e Alto Contraste Escuro
+   ========================================================================== */
+
+:root {
+  /* Fontes do Windows clássico */
+  --win-font: "Segoe UI", Tahoma, "MS Sans Serif", Arial, sans-serif;
+  --win-font-mono: "Consolas", "Courier New", monospace;
+  
+  /* Dimensões padrão */
+  --titlebar-height: 28px;
+  --statusbar-height: 24px;
+}
+
+/* ==========================================================================
+   TEMAS DISPONÍVEIS
+   ========================================================================== */
+
+/* 1. CLÁSSICO P&B (PADRÃO TONS DE CINZA / WINDOWS CLASSIC) */
+body[data-theme="classic-bw"] {
+  --bg-desktop: #c3c3c3;
+  --bg-window: #e0e0e0;
+  --bg-panel: #d5d5d5;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --text-main: #000000;
+  --text-muted: #555555;
+  --text-inverted: #ffffff;
+  --border-light: #ffffff;
+  --border-medium: #888888;
+  --border-dark: #333333;
+  --titlebar-bg-start: #555555;
+  --titlebar-bg-end: #222222;
+  --titlebar-text: #ffffff;
+  --btn-bg: #e0e0e0;
+  --btn-hover: #ececec;
+  --btn-active: #d0d0d0;
+  --selected-bg: #222222;
+  --selected-text: #ffffff;
+  --grid-answered: #333333;
+  --grid-answered-text: #ffffff;
+  --grid-flagged: #888888;
+  --correct-badge-bg: #000000;
+  --correct-badge-text: #ffffff;
+  --wrong-badge-bg: #888888;
+  --wrong-badge-text: #ffffff;
+}
+
+/* 2. BAIXO CONTRASTE SUAVE (PARA LEITURA PROLONGADA SEM CANSAÇO) */
+body[data-theme="low-contrast"] {
+  --bg-desktop: #d8d7d3;
+  --bg-window: #e8e7e3;
+  --bg-panel: #deddd8;
+  --bg-card: #f7f6f2;
+  --bg-input: #f7f6f2;
+  --text-main: #2d2d2a;
+  --text-muted: #6a6964;
+  --text-inverted: #f7f6f2;
+  --border-light: #fbfbf9;
+  --border-medium: #b4b3ad;
+  --border-dark: #777670;
+  --titlebar-bg-start: #787771;
+  --titlebar-bg-end: #4e4d48;
+  --titlebar-text: #f7f6f2;
+  --btn-bg: #e4e3df;
+  --btn-hover: #eeedea;
+  --btn-active: #d6d5d0;
+  --selected-bg: #4e4d48;
+  --selected-text: #f7f6f2;
+  --grid-answered: #5a5953;
+  --grid-answered-text: #f7f6f2;
+  --grid-flagged: #9c9a92;
+  --correct-badge-bg: #3c3b37;
+  --correct-badge-text: #f7f6f2;
+  --wrong-badge-bg: #828078;
+  --wrong-badge-text: #f7f6f2;
+}
+
+/* 3. ALTO CONTRASTE CLARO (MÁXIMA NITIDEZ / ACESSIBILIDADE) */
+body[data-theme="high-contrast-light"] {
+  --bg-desktop: #ffffff;
+  --bg-window: #ffffff;
+  --bg-panel: #ffffff;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --text-main: #000000;
+  --text-muted: #000000;
+  --text-inverted: #ffffff;
+  --border-light: #000000;
+  --border-medium: #000000;
+  --border-dark: #000000;
+  --titlebar-bg-start: #000000;
+  --titlebar-bg-end: #000000;
+  --titlebar-text: #ffffff;
+  --btn-bg: #ffffff;
+  --btn-hover: #eeeeee;
+  --btn-active: #000000;
+  --selected-bg: #000000;
+  --selected-text: #ffffff;
+  --grid-answered: #000000;
+  --grid-answered-text: #ffffff;
+  --grid-flagged: #ffffff;
+  --correct-badge-bg: #000000;
+  --correct-badge-text: #ffffff;
+  --wrong-badge-bg: #ffffff;
+  --wrong-badge-text: #000000;
+}
+
+/* 4. MODO ESCURO CLÁSSICO (CONFORTO VISUAL NOTURNO) */
+body[data-theme="dark-mode"] {
+  --bg-desktop: #121212;
+  --bg-window: #202020;
+  --bg-panel: #292929;
+  --bg-card: #191919;
+  --bg-input: #191919;
+  --text-main: #dedede;
+  --text-muted: #949494;
+  --text-inverted: #121212;
+  --border-light: #444444;
+  --border-medium: #2a2a2a;
+  --border-dark: #0f0f0f;
+  --titlebar-bg-start: #353535;
+  --titlebar-bg-end: #171717;
+  --titlebar-text: #ffffff;
+  --btn-bg: #2b2b2b;
+  --btn-hover: #383838;
+  --btn-active: #1e1e1e;
+  --selected-bg: #dedede;
+  --selected-text: #121212;
+  --grid-answered: #d0d0d0;
+  --grid-answered-text: #121212;
+  --grid-flagged: #555555;
+  --correct-badge-bg: #dedede;
+  --correct-badge-text: #121212;
+  --wrong-badge-bg: #555555;
+  --wrong-badge-text: #dedede;
+}
+
+/* 5. ALTO CONTRASTE ESCURO (PRETO PURO E BRANCO PURO INVERTIDO) */
+body[data-theme="high-contrast-dark"] {
+  --bg-desktop: #000000;
+  --bg-window: #000000;
+  --bg-panel: #000000;
+  --bg-card: #000000;
+  --bg-input: #000000;
+  --text-main: #ffffff;
+  --text-muted: #ffffff;
+  --text-inverted: #000000;
+  --border-light: #ffffff;
+  --border-medium: #ffffff;
+  --border-dark: #ffffff;
+  --titlebar-bg-start: #ffffff;
+  --titlebar-bg-end: #ffffff;
+  --titlebar-text: #000000;
+  --btn-bg: #000000;
+  --btn-hover: #222222;
+  --btn-active: #ffffff;
+  --selected-bg: #ffffff;
+  --selected-text: #000000;
+  --grid-answered: #ffffff;
+  --grid-answered-text: #000000;
+  --grid-flagged: #000000;
+  --correct-badge-bg: #ffffff;
+  --correct-badge-text: #000000;
+  --wrong-badge-bg: #000000;
+  --wrong-badge-text: #ffffff;
+}
+
+/* ==========================================================================
+   RESET & BASE
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--win-font);
+  background-color: var(--bg-desktop);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  user-select: text;
+}
+
+/* Escala de Fontes */
+body.font-sm {
+  font-size: 13px;
+  --text-enunciado: 14px;
+  --text-alt: 13px;
+}
+body.font-md {
+  font-size: 15px;
+  --text-enunciado: 17px;
+  --text-alt: 15px;
+}
+body.font-lg {
+  font-size: 17px;
+  --text-enunciado: 19px;
+  --text-alt: 17px;
+}
+body.font-xl {
+  font-size: 19px;
+  --text-enunciado: 22px;
+  --text-alt: 19px;
+}
+
+/* ==========================================================================
+   BORDAS E CHANFROS WINDOWS XP (BEVELS 3D)
+   ========================================================================== */
+
+/* Chanfro externo (Outset - Botões, Janelas, Barras) */
+.bevel-outset {
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
+}
+
+/* Chanfro interno (Inset - Campos de texto, áreas de conteúdo, status bar) */
+.bevel-inset {
+  border-top: 2px solid var(--border-dark);
+  border-left: 2px solid var(--border-dark);
+  border-right: 2px solid var(--border-light);
+  border-bottom: 2px solid var(--border-light);
+}
+
+/* ==========================================================================
+   ESTRUTURA PRINCIPAL DA JANELA
+   ========================================================================== */
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  padding: 4px;
+}
+
+.win-window {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background-color: var(--bg-window);
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* ==========================================================================
+   BARRA DE TÍTULO WINDOWS XP
+   ========================================================================== */
+
+.win-titlebar {
+  height: var(--titlebar-height);
+  background: linear-gradient(to right, var(--titlebar-bg-start), var(--titlebar-bg-end));
+  color: var(--titlebar-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 0 8px;
+  user-select: none;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.3px;
+}
+
+.win-title-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.win-title-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.win-title-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.win-btn-control {
+  width: 21px;
+  height: 21px;
+  background-color: var(--btn-bg);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  border-right-color: var(--border-dark);
+  border-bottom-color: var(--border-dark);
+  font-size: 11px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+  border-radius: 2px;
+}
+
+.win-btn-control:hover {
+  background-color: var(--btn-hover);
+}
+
+.win-btn-control:active {
+  border-color: var(--border-dark);
+  border-right-color: var(--border-light);
+  border-bottom-color: var(--border-light);
+}
+
+.win-btn-close:hover {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   BARRA DE MENUS (ARQUIVO, MODO, EXIBIR...)
+   ========================================================================== */
+
+.win-menubar {
+  display: flex;
+  background-color: var(--bg-window);
+  border-bottom: 1px solid var(--border-medium);
+  padding: 1px 4px;
+  font-size: 12px;
+  position: relative;
+  user-select: none;
+}
+
+.win-menu-item {
+  padding: 2px 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  position: relative;
+}
+
+.win-menu-item:hover, .win-menu-item.active {
+  background-color: var(--btn-hover);
+  border-color: var(--border-medium);
+}
+
+.win-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: var(--bg-window);
+  border: 2px solid var(--border-dark);
+  border-left-color: var(--border-light);
+  border-top-color: var(--border-light);
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+  z-index: 999;
+  min-width: 220px;
+  padding: 2px 0;
+}
+
+.win-dropdown-item {
+  padding: 4px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.win-dropdown-item:hover {
+  background-color: var(--selected-bg);
+  color: var(--selected-text);
+}
+
+.win-dropdown-divider {
+  height: 1px;
+  background-color: var(--border-medium);
+  margin: 3px 0;
+}
+
+/* ==========================================================================
+   BARRA DE FERRAMENTAS (TOOLBAR)
+   ========================================================================== */
+
+.win-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background-color: var(--bg-window);
+  border-bottom: 1px solid var(--border-medium);
+  flex-wrap: wrap;
+}
+
+.win-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 3px 10px;
+  background-color: var(--btn-bg);
+  color: var(--text-main);
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  user-select: none;
+  border-radius: 1px;
+  font-weight: 500;
+  height: 28px;
+}
+
+.win-btn:hover {
+  background-color: var(--btn-hover);
+}
+
+.win-btn:active, .win-btn.active {
+  border-top: 2px solid var(--border-dark);
+  border-left: 2px solid var(--border-dark);
+  border-right: 2px solid var(--border-light);
+  border-bottom: 2px solid var(--border-light);
+  background-color: var(--btn-active);
+  padding: 4px 9px 2px 11px; /* Efeito de clique do windows */
+}
+
+.win-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.win-btn-primary {
+  font-weight: bold;
+}
+
+.win-toolbar-separator {
+  width: 1px;
+  height: 22px;
+  background-color: var(--border-medium);
+  margin: 0 4px;
+}
+
+/* ==========================================================================
+   CONTEÚDO PRINCIPAL (ÁREA DE ESTUDO & SPLIT VIEW)
+   ========================================================================== */
+
+.win-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  padding: 6px;
+  gap: 6px;
+  background-color: var(--bg-window);
+}
+
+.study-main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--bg-card);
+  padding: 12px 16px;
+}
+
+.study-scroll-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Metadados da Questão (Cabeçalho da questão) */
+.question-header {
+  border-bottom: 2px solid var(--border-medium);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.question-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.win-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: bold;
+  border: 1px solid var(--border-dark);
+  background-color: var(--bg-panel);
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.question-title {
+  font-size: 17px;
+  font-weight: bold;
+}
+
+/* Enunciado da Questão */
+.question-enunciado {
+  font-size: var(--text-enunciado, 17px);
+  line-height: 1.65;
+  margin-bottom: 16px;
+  color: var(--text-main);
+}
+
+.question-enunciado b {
+  font-weight: 700;
+}
+
+.question-enunciado img.questao-imagem {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 12px auto;
+  border: 1px solid var(--border-dark);
+  background-color: #ffffff;
+  padding: 4px;
+  cursor: zoom-in;
+  transition: transform 0.2s ease;
+}
+
+.question-enunciado img.questao-imagem:hover {
+  outline: 2px solid var(--border-dark);
+}
+
+/* Alternativas */
+.alternatives-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.alternative-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-medium);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.1s ease;
+}
+
+.alternative-card:hover {
+  background-color: var(--btn-hover);
+  border-color: var(--border-dark);
+}
+
+.alternative-card.selected {
+  background-color: var(--selected-bg);
+  color: var(--selected-text);
+  border-color: var(--border-dark);
+}
+
+.alternative-card.strikethrough {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.alternative-card.correct-highlight {
+  outline: 3px solid var(--border-dark);
+  font-weight: bold;
+}
+
+.alt-letter-box {
+  width: 28px;
+  height: 28px;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.alt-text {
+  flex: 1;
+  font-size: var(--text-alt, 15px);
+  line-height: 1.45;
+  padding-top: 2px;
+}
+
+.alt-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.alt-btn-strike {
+  background: none;
+  border: 1px solid currentColor;
+  color: inherit;
+  font-size: 11px;
+  padding: 2px 6px;
+  cursor: pointer;
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+.alt-btn-strike:hover {
+  opacity: 1;
+  font-weight: bold;
+}
+
+/* Feedback do Modo Treino */
+.feedback-box {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 2px solid var(--border-dark);
+  background-color: var(--bg-panel);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.feedback-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-weight: bold;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.feedback-correct {
+  background-color: var(--correct-badge-bg);
+  color: var(--correct-badge-text);
+  border: 1px solid var(--border-dark);
+}
+
+.feedback-wrong {
+  background-color: var(--wrong-badge-bg);
+  color: var(--wrong-badge-text);
+  border: 1px solid var(--border-dark);
+}
+
+/* ==========================================================================
+   PAINEL LATERAL (GRADE 1..90 & CRONÔMETRO)
+   ========================================================================== */
+
+.study-sidebar {
+  width: 290px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: var(--bg-window);
+}
+
+.timer-box {
+  padding: 8px 12px;
+  background-color: var(--bg-card);
+  text-align: center;
+}
+
+.timer-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.timer-digits {
+  font-family: var(--win-font-mono);
+  font-size: 26px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.grid-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-card);
+  padding: 8px;
+  overflow: hidden;
+}
+
+.grid-title {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.question-grid-scroll {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  padding-right: 4px;
+}
+
+.grid-item {
+  height: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 1px solid var(--border-medium);
+  background-color: var(--btn-bg);
+  color: var(--text-main);
+  position: relative;
+  user-select: none;
+}
+
+.grid-item:hover {
+  background-color: var(--btn-hover);
+}
+
+.grid-item.active {
+  outline: 2px solid var(--border-dark);
+  font-weight: 900;
+  text-decoration: underline;
+}
+
+.grid-item.answered {
+  background-color: var(--grid-answered);
+  color: var(--grid-answered-text);
+  border-color: var(--border-dark);
+}
+
+.grid-item.flagged::after {
+  content: "★";
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  font-size: 9px;
+  color: inherit;
+}
+
+.grid-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  border-top: 1px solid var(--border-medium);
+  padding-top: 4px;
+}
+
+/* ==========================================================================
+   BARRA DE STATUS (STATUSBAR)
+   ========================================================================== */
+
+.win-statusbar {
+  height: var(--statusbar-height);
+  background-color: var(--bg-window);
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  gap: 4px;
+  font-size: 11px;
+  user-select: none;
+}
+
+.status-pane {
+  padding: 2px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-pane-flex {
+  flex: 1;
+}
+
+/* ==========================================================================
+   MODAIS & DIÁLOGOS ESTILO WINDOWS
+   ========================================================================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.win-dialog {
+  background-color: var(--bg-window);
+  max-width: 650px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 3px 3px 0 0;
+  overflow: hidden;
+  box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.win-dialog-body {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.win-dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--bg-window);
+  border-top: 1px solid var(--border-medium);
+}
+
+.fieldset-box {
+  border: 2px groove var(--border-medium);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.fieldset-box legend {
+  padding: 0 6px;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.win-select, .win-input {
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  border: 2px solid var(--border-dark);
+  border-right-color: var(--border-light);
+  border-bottom-color: var(--border-light);
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 13px;
+  flex: 1;
+}
+
+/* ==========================================================================
+   SCROLLBARS RETRO WINDOWS
+   ========================================================================== */
+
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-panel);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--btn-bg);
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--btn-hover);
+}
+
+/* ==========================================================================
+   RESPONSIVIDADE (Telas menores / Tablets)
+   ========================================================================== */
+
+@media (max-width: 860px) {
+  .win-content {
+    flex-direction: column;
+  }
+  .study-sidebar {
+    width: 100%;
+    height: 160px;
+    flex-direction: row;
+  }
+  .timer-box {
+    width: 140px;
+  }
+  .grid-box {
+    flex: 1;
+  }
+  .question-grid-scroll {
+    grid-template-columns: repeat(10, 1fr);
+  }
+}
