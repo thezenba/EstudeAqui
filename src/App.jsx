@@ -129,16 +129,15 @@ export default function App() {
     let examName = '';
     let duration = 0;
 
-    if (config.type === 'individual') {
-      const selected = provasList.find(p => p.codigo === config.examCode) || provasList[0];
-      filtered = allQuestions.filter(q => q.provaId === selected.codigo);
-      examName = `${selected.nome} (${selected.banca})`;
-      setCurrentExam(selected);
+    const isIndividual = config.type === 'individual' || config.type === 'oficial';
 
-      if (config.timeOption === 'oficial') {
-        duration = Math.round(filtered.length * 3 * 60);
-      } else if (config.timeOption !== 'livre') {
-        duration = Number(config.timeOption) * 60;
+    if (isIndividual) {
+      const codeNum = Number(config.examCode);
+      const selected = provasList.find(p => Number(p.codigo) === codeNum) || provasList[0];
+      if (selected) {
+        filtered = allQuestions.filter(q => Number(q.provaId) === Number(selected.codigo));
+        examName = `${selected.nome} (${selected.banca || 'Oficial'})`;
+        setCurrentExam(selected);
       }
     } else if (config.type === 'misto_disciplina') {
       // Filtrar por disciplina e origens selecionadas
@@ -158,24 +157,28 @@ export default function App() {
 
       examName = `Simulado Misto: ${config.disciplina} (${filtered.length} questões multi-bancas)`;
       setCurrentExam({ codigo: 0, nome: examName, dia: 1, banca: 'Multi-Bancas' });
-
-      if (config.timeOption === 'oficial') {
-        duration = Math.round(filtered.length * 3 * 60);
-      } else if (config.timeOption !== 'livre') {
-        duration = Number(config.timeOption) * 60;
-      }
     } else if (config.type === 'combo_provas') {
-      const selectedExams = provasList.filter(p => config.examCodes.includes(p.codigo));
-      filtered = allQuestions.filter(q => config.examCodes.includes(q.provaId));
+      const codes = (config.examCodes || []).map(Number);
+      const selectedExams = provasList.filter(p => codes.includes(Number(p.codigo)));
+      filtered = allQuestions.filter(q => codes.includes(Number(q.provaId)));
 
       examName = `Combo (${selectedExams.length} Provas: ${selectedExams.map(p => p.nome).slice(0, 2).join(', ')}${selectedExams.length > 2 ? '...' : ''})`;
       setCurrentExam({ codigo: 0, nome: examName, dia: 1, banca: 'Combo Personalizado' });
+    }
 
-      if (config.timeOption === 'oficial') {
-        duration = Math.round(filtered.length * 3 * 60);
-      } else if (config.timeOption !== 'livre') {
-        duration = Number(config.timeOption) * 60;
-      }
+    if (!filtered || filtered.length === 0) {
+      alert('Nenhuma questão encontrada para a prova ou combinação selecionada.');
+      return;
+    }
+
+    // Ordenar questões pelo número oficial
+    filtered.sort((a, b) => (Number(a.numeroQuestao) || 0) - (Number(b.numeroQuestao) || 0));
+
+    // Duração do tempo
+    if (config.timeOption === 'oficial') {
+      duration = Math.round(filtered.length * 3 * 60);
+    } else if (config.timeOption !== 'livre') {
+      duration = Number(config.timeOption) * 60;
     }
 
     setExamQuestions(filtered);
