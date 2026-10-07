@@ -1,0 +1,17 @@
+{
+  "name": "EstudeAqui - Simulador INEP & ENEM",
+  "short_name": "EstudeAqui",
+  "description": "Simulador oficial de vestibulares e ENEM com 1.802 questões oficiais e foco cognitivo.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#c0c0c0",
+  "theme_color": "#222222",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
