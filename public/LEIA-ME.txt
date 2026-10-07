@@ -1,0 +1,23 @@
+========================================================================
+ESTUDEAQUI - SIMULADOR OFFLINE (ENEM, VESTIBULARES E CONCURSOS)
+========================================================================
+
+Este pacote contem o simulador completo com 5.799 questoes oficiais
+e 112 provas (ENEM 2015-2024, ITA, UFU, IFTM, FGV, DETRAN, etc.), pronto
+para ser usado 100% offline, sem necessidade de conexao com a internet.
+
+COMO USAR:
+------------------------------------------------------------------------
+1. De 2 cliques no arquivo:
+   INICIAR_ESTUDEAQUI.bat
+
+2. O seu navegador de internet padrao (Chrome, Edge, Firefox, Brave)
+   se abrira automaticamente com o aplicativo pronto para estudar!
+
+3. Voce nao precisa instalar nada (nem Node.js, nem Python, nem banco).
+   O aplicativo funciona diretamente no seu computador Windows.
+
+4. Para fechar, basta fechar a janela preta do terminal.
+
+Bons estudos!
+========================================================================
