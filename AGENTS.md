@@ -42,6 +42,11 @@ Qualquer desenvolvedor ou Agente de IA que for alterar o projeto **DEVE** seguir
    - No ENEM, as questões do caderno oficial agrupam áreas amplas (Linguagens, Humanas, Natureza, Matemática). No banco do EstudeAqui, foi feito um tratamento algorítmico criterioso para categorizar cada questão com sua disciplina específica (ex: *História, Geografia, Filosofia, Sociologia, Biologia, Física, Química*). **Nunca reverta essa classificação para etiquetas genéricas como "Informática"**.
 5. **Manter o Comportamento do Cronômetro:**
    - Por especificação de usabilidade, ao abrir uma prova o cronômetro começa **desativado/pausado** até que o estudante clique expressamente no botão **"Iniciar Cronômetro"** ou **"Começar Agora"**, permitindo leitura prévia das instruções sem consumo injusto de tempo.
+6. **Preservar a Organização por Blocos Oficiais de Conhecimento e Responsividade Mobile-First (conforme `skills.md`):**
+   - No ENEM, as provas devem sempre respeitar a divisão canônica em blocos:
+     - **1º Domingo:** 1º Bloco: Língua Estrangeira (Inglês ou Espanhol - 5q) ➔ 2º Bloco: Linguagens e Códigos (40q) ➔ 3º Bloco: Ciências Humanas (45q).
+     - **2º Domingo:** 1º Bloco: Ciências da Natureza (45q) ➔ 2º Bloco: Matemática (45q).
+   - A interface deve seguir a arquitetura **Mobile-First** com touch targets de no mínimo 44px, safe areas (`env(safe-area-inset-*)`), `touch-action: manipulation;`, e media queries progressivas (`@media (min-width: ...)`), preservando a estética retrô Windows XP.
 
 ---
 
@@ -100,17 +105,19 @@ e:/Projects/EstudeAqui/
 └── src/                                 # Código-fonte da aplicação React
     ├── main.jsx                         # Ponto de entrada React (createRoot)
     ├── App.jsx                          # Componente raiz, gestor central de estado e regras de negócio
-    ├── index.css                        # Design System retrô completo (estilo Windows XP / P&B)
+    ├── index.css                        # Design System retrô completo (estilo Windows XP / P&B / Mobile-First)
+    ├── utils/                           # Utilitários de classificação e lógica de prova
+    │   └── blockClassifier.js           # Classificação e ordenação canônica dos blocos oficiais de conhecimento
     └── components/                      # Componentes modulares da interface
         ├── TitleBar.jsx                 # Barra de título com botões de janela clássicos
         ├── MenuBar.jsx                  # Menu horizontal clássico (Arquivo, Simulado, Ferramentas, etc.)
         ├── Toolbar.jsx                  # Barra de atalhos rápidos com controles de cronômetro e ações
         ├── WelcomeScreen.jsx            # Tela de boas-vindas com cartões para início rápido
-        ├── QuestionViewer.jsx           # Exibição da questão, alternativas, riscamento e gabarito
-        ├── QuestionGrid.jsx             # Grade lateral de navegação rápida pelas questões (1..N)
+        ├── QuestionViewer.jsx           # Exibição da questão, alternativas, riscamento, badges de bloco e gabarito
+        ├── QuestionGrid.jsx             # Grade de navegação com abas de blocos oficiais e progresso
         ├── StatusBar.jsx                # Barra de rodapé com estatísticas da sessão e atalhos de tema
-        ├── ExamSelectorModal.jsx        # Modal com 3 abas: Individual, Simulado Misto e Combo
-        ├── ResultsModal.jsx             # Relatório analítico pós-prova com gráfico e revisão detalhada
+        ├── ExamSelectorModal.jsx        # Modal com seleção de língua estrangeira e divisão por blocos
+        ├── ResultsModal.jsx             # Relatório analítico pós-prova com desempenho por bloco oficial e matérias
         ├── StatsModal.jsx               # Histórico acumulado de desempenho em simulados anteriores
         └── HelpModal.jsx                # Janela de ajuda, atalhos de teclado e sobre o sistema
 ```

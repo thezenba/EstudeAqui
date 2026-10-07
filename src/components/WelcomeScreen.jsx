@@ -35,29 +35,29 @@ export default function WelcomeScreen({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <button
               className="win-btn win-btn-primary"
-              style={{ height: '42px', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+              style={{ minHeight: '44px', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '10px 14px', touchAction: 'manipulation' }}
               onClick={() => onOpenExamSelector('individual')}
             >
               <span>📋</span>
-              <span><b>Selecionar Prova Específica (112 Provas)</b> — ENEM, ITA, UFU, IFTM, FGV...</span>
+              <span><b>Selecionar Prova Específica (112 Provas)</b> — ENEM, ITA, UFU, IFTM...</span>
             </button>
 
             <button
               className="win-btn"
-              style={{ height: '38px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+              style={{ minHeight: '44px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '10px 14px', touchAction: 'manipulation' }}
               onClick={() => onOpenExamSelector('misto_disciplina')}
             >
               <span>🔀</span>
-              <span><b>Simulado Misto por Disciplina</b> — Mesclar Matemática, Português ou Direito de várias bancas</span>
+              <span><b>Simulado Misto por Disciplina</b> — Mesclar matérias de várias bancas</span>
             </button>
 
             <button
               className="win-btn"
-              style={{ height: '38px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+              style={{ minHeight: '44px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '10px 14px', touchAction: 'manipulation' }}
               onClick={() => onOpenExamSelector('combo_provas')}
             >
               <span>🧩</span>
-              <span><b>Combo Personalizado</b> — Selecionar 2 ou mais provas para resolver em conjunto</span>
+              <span><b>Combo Personalizado</b> — Selecionar 2 ou mais provas simultâneas</span>
             </button>
           </div>
         </fieldset>
@@ -65,25 +65,25 @@ export default function WelcomeScreen({
         {/* RESUMO DO ACERVO DISPONÍVEL */}
         <fieldset className="fieldset-box">
           <legend>Acervo Catalogado Disponível (100% Offline)</legend>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', fontSize: '12px' }}>
-            <div className="bevel-inset" style={{ padding: '8px', backgroundColor: 'var(--bg-card)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', fontSize: '12px' }}>
+            <div className="bevel-inset" style={{ padding: '10px', backgroundColor: 'var(--bg-card)' }}>
               <b>🏛️ ENEM / INEP (2015 a 2024)</b>
-              <div style={{ color: 'var(--text-muted)', marginTop: '2px' }}>18 provas completas oficiais (1.622 questões)</div>
+              <div style={{ color: 'var(--text-muted)', marginTop: '3px' }}>18 provas completas oficiais (1.622 questões)</div>
             </div>
 
-            <div className="bevel-inset" style={{ padding: '8px', backgroundColor: 'var(--bg-card)' }}>
+            <div className="bevel-inset" style={{ padding: '10px', backgroundColor: 'var(--bg-card)' }}>
               <b>🎓 Vestibulares Tradicionais</b>
-              <div style={{ color: 'var(--text-muted)', marginTop: '2px' }}>ITA, UFU, IFTM, USP, CEFETMINAS (1.857 questões)</div>
+              <div style={{ color: 'var(--text-muted)', marginTop: '3px' }}>ITA, UFU, IFTM, USP, CEFETMINAS (1.857 questões)</div>
             </div>
 
-            <div className="bevel-inset" style={{ padding: '8px', backgroundColor: 'var(--bg-card)' }}>
+            <div className="bevel-inset" style={{ padding: '10px', backgroundColor: 'var(--bg-card)' }}>
               <b>⚖️ Concursos Públicos</b>
-              <div style={{ color: 'var(--text-muted)', marginTop: '2px' }}>FGV, CESPE, TRT-MG, Polícias Civil/Científica (997 questões)</div>
+              <div style={{ color: 'var(--text-muted)', marginTop: '3px' }}>FGV, CESPE, TRT-MG, Polícias (997 questões)</div>
             </div>
 
-            <div className="bevel-inset" style={{ padding: '8px', backgroundColor: 'var(--bg-card)' }}>
+            <div className="bevel-inset" style={{ padding: '10px', backgroundColor: 'var(--bg-card)' }}>
               <b>🚗 DETRAN & Habilitação</b>
-              <div style={{ color: 'var(--text-muted)', marginTop: '2px' }}>Legislação, Direção Defensiva, Mecânica (810 questões)</div>
+              <div style={{ color: 'var(--text-muted)', marginTop: '3px' }}>Legislação, Direção Defensiva, Mecânica (810 questões)</div>
             </div>
           </div>
 

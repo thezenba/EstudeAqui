@@ -60,9 +60,39 @@ export default function ResultsModal({
             </div>
           </div>
 
-          {/* DESEMPENHO POR ÁREA DO CONHECIMENTO */}
+          {/* DESEMPENHO POR BLOCO OFICIAL DE CONHECIMENTO */}
+          {results.byBlock && results.byBlock.length > 0 && (
+            <fieldset className="fieldset-box">
+              <legend>📚 Desempenho por Bloco Oficial de Conhecimento</legend>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '4px 0' }}>
+                {results.byBlock.map((block) => {
+                  const pct = block.total > 0 ? Math.round((block.correct / block.total) * 100) : 0;
+                  return (
+                    <div key={block.blocoId} style={{ borderBottom: '1px dotted var(--border-medium)', paddingBottom: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', marginBottom: '4px' }}>
+                        <span>{block.icone || '📖'} {block.blocoNome}</span>
+                        <span>{block.correct}/{block.total} ({pct}%)</span>
+                      </div>
+                      <div className="bevel-inset" style={{ height: '14px', backgroundColor: 'var(--bg-panel)', position: 'relative', overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${pct}%`,
+                            backgroundColor: 'var(--selected-bg)',
+                            transition: 'width 0.4s ease'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </fieldset>
+          )}
+
+          {/* DESEMPENHO POR DISCIPLINA ESPECÍFICA */}
           <fieldset className="fieldset-box">
-            <legend>Desempenho por Área do Conhecimento</legend>
+            <legend>🔬 Desempenho por Disciplina Específica</legend>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '4px 0' }}>
               {byArea.map((item) => {
                 const pctArea = item.total > 0 ? Math.round((item.correct / item.total) * 100) : 0;

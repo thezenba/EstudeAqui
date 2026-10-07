@@ -98,6 +98,9 @@ export default function ExamSelectorModal({
   // TEMPO DO CRONÔMETRO
   const [timeOption, setTimeOption] = useState('oficial');
 
+  // LÍNGUA ESTRANGEIRA (ENEM DIA 1)
+  const [foreignLang, setForeignLang] = useState('ingles'); // 'ingles' | 'espanhol' | 'ambas'
+
   // Categorias disponíveis
   const categorias = [
     { id: 'todas', label: 'Todas as Categorias (Agrupadas com Subtítulos)' },
@@ -207,6 +210,11 @@ export default function ExamSelectorModal({
     return provasList.find(p => Number(p.codigo) === Number(effectiveExamCode));
   }, [provasList, effectiveExamCode]);
 
+  const isEnem = selectedExamObj?.categoriaId === 'enem' || (selectedExamObj?.nome && selectedExamObj.nome.toLowerCase().includes('enem'));
+  const examNameLower = (selectedExamObj?.nome || '').toLowerCase();
+  const isEnemDia1 = Boolean(isEnem && (selectedExamObj?.dia === 1 || examNameLower.includes('dia 1')));
+  const isEnemDia2 = Boolean(isEnem && (selectedExamObj?.dia === 2 || examNameLower.includes('dia 2')));
+
   // Contagem de questões disponíveis para o Simulado Misto selecionado
   const mixedAvailableCount = useMemo(() => {
     return allQuestions.filter(q => {
@@ -233,6 +241,7 @@ export default function ExamSelectorModal({
       onStartExam({
         type: 'individual',
         examCode: Number(effectiveExamCode),
+        foreignLang,
         timeOption
       });
     } else if (selectionType === 'misto_disciplina') {
@@ -425,8 +434,73 @@ export default function ExamSelectorModal({
                   <div style={{ display: 'flex', gap: '16px', color: 'var(--text-muted)', fontSize: '11px', flexWrap: 'wrap', marginTop: '2px' }}>
                     <span>Ano Oficial: <b>{selectedExamObj.ano || '—'}</b></span>
                     <span>Banca Examinadora: <b>{cleanBanca(selectedExamObj.banca)}</b></span>
-                    <span>Total de Questões: <b>{selectedExamObj.totalQuestoes}</b></span>
-                    <span>Tempo Oficial Sugerido: <b>~{formatHoursMinutes(selectedExamObj.totalQuestoes * 3)}</b></span>
+                    <span>Total de Questões: <b>{isEnemDia1 && foreignLang !== 'ambas' ? 90 : selectedExamObj.totalQuestoes}</b></span>
+                    <span>Tempo Oficial Sugerido: <b>~{formatHoursMinutes((isEnemDia1 && foreignLang !== 'ambas' ? 90 : selectedExamObj.totalQuestoes) * 3)}</b></span>
+                  </div>
+
+                  {/* Divisão Oficial em Blocos de Conhecimento */}
+                  <div style={{ marginTop: '8px', borderTop: '1px dashed var(--border-medium)', paddingTop: '6px' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-main)', marginBottom: '4px' }}>
+                      Divisão Oficial por Blocos de Conhecimento:
+                    </div>
+                    {isEnemDia1 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '11px' }}>
+                        <div>• 🌐 <b>1º Bloco: Língua Estrangeira</b> ({foreignLang === 'espanhol' ? 'Espanhol' : foreignLang === 'ambas' ? 'Inglês & Espanhol' : 'Inglês'}) — {foreignLang === 'ambas' ? '10' : '5'} questões (Q1 a Q5)</div>
+                        <div>• 📖 <b>2º Bloco: Linguagens, Códigos e suas Tecnologias</b> (Português, Literatura) — 40 questões (Q6 a Q45)</div>
+                        <div>• 🏛️ <b>3º Bloco: Ciências Humanas e suas Tecnologias</b> (História, Geografia, Filosofia, Sociologia) — 45 questões (Q46 a Q90)</div>
+                      </div>
+                    ) : isEnemDia2 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '11px' }}>
+                        <div>• 🔬 <b>1º Bloco: Ciências da Natureza e suas Tecnologias</b> (Biologia, Química e Física) — 45 questões (Q91 a Q135)</div>
+                        <div>• 📐 <b>2º Bloco: Matemática e suas Tecnologias</b> (Matemática pura e aplicada) — 45 questões (Q136 a Q180)</div>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                        • Caderno de questões estruturado em ordem sequencial com gabarito oficial confirmado.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Seletor de Língua Estrangeira para ENEM Dia 1 */}
+              {isEnemDia1 && (
+                <div className="fieldset-box" style={{ marginTop: '8px' }}>
+                  <legend>🌐 Opção de Língua Estrangeira Oficial (ENEM Dia 1)</legend>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                    No caderno oficial, o candidato resolve 5 questões de Inglês ou Espanhol. Escolha sua preferência:
+                  </p>
+                  <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                      <input
+                        type="radio"
+                        name="foreignLang"
+                        value="ingles"
+                        checked={foreignLang === 'ingles'}
+                        onChange={() => setForeignLang('ingles')}
+                      />
+                      <span>🇬🇧 <b>Inglês</b> (Padrão Oficial - 90 questões)</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                      <input
+                        type="radio"
+                        name="foreignLang"
+                        value="espanhol"
+                        checked={foreignLang === 'espanhol'}
+                        onChange={() => setForeignLang('espanhol')}
+                      />
+                      <span>🇪🇸 <b>Espanhol</b> (90 questões)</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                      <input
+                        type="radio"
+                        name="foreignLang"
+                        value="ambas"
+                        checked={foreignLang === 'ambas'}
+                        onChange={() => setForeignLang('ambas')}
+                      />
+                      <span>🌐 <b>Ambas</b> (95 questões)</span>
+                    </label>
                   </div>
                 </div>
               )}

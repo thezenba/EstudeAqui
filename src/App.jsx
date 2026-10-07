@@ -10,6 +10,7 @@ import ExamSelectorModal from './components/ExamSelectorModal.jsx';
 import ResultsModal from './components/ResultsModal.jsx';
 import StatsModal from './components/StatsModal.jsx';
 import HelpModal from './components/HelpModal.jsx';
+import { enrichAndOrderQuestions } from './utils/blockClassifier.js';
 
 export default function App() {
   // Configurações de Aparência
@@ -20,6 +21,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [allQuestions, setAllQuestions] = useState([]);
   const [provasList, setProvasList] = useState([]);
+
+  // Alternância de visão no mobile ('question' | 'grid')
+  const [mobileActiveView, setMobileActiveView] = useState('question');
 
   // Estado da Sessão (Tela Inicial vs Prova Ativa)
   const [examStarted, setExamStarted] = useState(false);
@@ -117,6 +121,7 @@ export default function App() {
     let filtered = [];
     let examName = '';
     let duration = 0;
+    let selectedExamObj = null;
 
     const isIndividual = config.type === 'individual' || config.type === 'oficial';
 
@@ -124,6 +129,7 @@ export default function App() {
       const codeNum = Number(config.examCode);
       const selected = provasList.find(p => Number(p.codigo) === codeNum) || provasList[0];
       if (selected) {
+        selectedExamObj = selected;
         filtered = allQuestions.filter(q => Number(q.provaId) === Number(selected.codigo));
         examName = `${selected.nome} (${selected.banca || 'Oficial'})`;
         setCurrentExam(selected);
@@ -141,14 +147,16 @@ export default function App() {
       filtered = filtered.map((q, idx) => ({ ...q, numeroQuestao: idx + 1 }));
 
       examName = `Simulado Misto: ${config.disciplina} (${filtered.length} questões multi-bancas)`;
-      setCurrentExam({ codigo: 0, nome: examName, dia: 1, banca: 'Multi-Bancas' });
+      selectedExamObj = { codigo: 0, nome: examName, dia: 1, banca: 'Multi-Bancas' };
+      setCurrentExam(selectedExamObj);
     } else if (config.type === 'combo_provas') {
       const codes = (config.examCodes || []).map(Number);
       const selectedExams = provasList.filter(p => codes.includes(Number(p.codigo)));
       filtered = allQuestions.filter(q => codes.includes(Number(q.provaId)));
 
       examName = `Combo (${selectedExams.length} Provas: ${selectedExams.map(p => p.nome).slice(0, 2).join(', ')}${selectedExams.length > 2 ? '...' : ''})`;
-      setCurrentExam({ codigo: 0, nome: examName, dia: 1, banca: 'Combo Personalizado' });
+      selectedExamObj = { codigo: 0, nome: examName, dia: 1, banca: 'Combo Personalizado' };
+      setCurrentExam(selectedExamObj);
     }
 
     if (!filtered || filtered.length === 0) {
@@ -156,18 +164,20 @@ export default function App() {
       return;
     }
 
-    // Ordenar questões pelo número oficial
-    filtered.sort((a, b) => (Number(a.numeroQuestao) || 0) - (Number(b.numeroQuestao) || 0));
+    // APLICAR CLASSIFICAÇÃO E ORDENAÇÃO OFICIAL POR BLOCOS DE CONHECIMENTO
+    const enriched = enrichAndOrderQuestions(filtered, selectedExamObj, {
+      foreignLang: config.foreignLang || 'ingles'
+    });
 
     // Duração do tempo
     if (config.timeOption === 'oficial') {
-      duration = Math.round(filtered.length * 3 * 60);
+      duration = Math.round(enriched.length * 3 * 60);
     } else if (config.timeOption !== 'livre') {
       duration = Number(config.timeOption) * 60;
     }
 
     // Carregar a prova e inicializar estados
-    setExamQuestions(filtered);
+    setExamQuestions(enriched);
     setCurrentIndex(0);
     setUserAnswers({});
     setFlaggedSet(new Set());
@@ -178,6 +188,7 @@ export default function App() {
     setIsTimerStarted(false); // O cronômetro começa DESATIVADO até o usuário clicar em Iniciar
     setIsPaused(false);
     setExamStarted(true); // Exibe a prova na tela
+    setMobileActiveView('question');
     setActiveModal(null);
   };
 
@@ -227,6 +238,7 @@ export default function App() {
     let blankCount = 0;
 
     const areaStats = {};
+    const blockStats = {};
     const questionSummary = [];
 
     examQuestions.forEach(q => {
@@ -238,6 +250,7 @@ export default function App() {
       else if (isCorrect) correctCount++;
       else wrongCount++;
 
+      // Disciplina
       const area = q.disciplina || q.areaConhecimento || 'Geral';
       if (!areaStats[area]) {
         areaStats[area] = { area, total: 0, correct: 0 };
@@ -245,10 +258,26 @@ export default function App() {
       areaStats[area].total++;
       if (isCorrect) areaStats[area].correct++;
 
+      // Bloco Oficial de Conhecimento
+      const blockKey = q.blocoId || 'geral';
+      if (!blockStats[blockKey]) {
+        blockStats[blockKey] = {
+          blocoId: blockKey,
+          blocoNome: q.blocoNome || 'Conhecimentos Gerais',
+          icone: q.blocoIcone || '📚',
+          ordem: q.blocoOrdem || 99,
+          total: 0,
+          correct: 0
+        };
+      }
+      blockStats[blockKey].total++;
+      if (isCorrect) blockStats[blockKey].correct++;
+
       questionSummary.push({
         id: q.id,
         numeroQuestao: q.numeroQuestao,
         areaConhecimento: area,
+        blocoNome: q.blocoNome || 'Geral',
         userAnswer: userAns || null,
         gabarito: q.gabarito,
         status: isBlank ? 'blank' : isCorrect ? 'correct' : 'wrong'
@@ -268,6 +297,7 @@ export default function App() {
       blankCount,
       percentage,
       elapsedSeconds,
+      byBlock: Object.values(blockStats).sort((a, b) => a.ordem - b.ordem),
       byArea: Object.values(areaStats),
       questionSummary
     };
@@ -455,44 +485,64 @@ export default function App() {
               onOpenHelp={() => setActiveModal('help')}
             />
           ) : (
-            /* VISUALIZADOR DA PROVA EM ANDAMENTO + GRADE LATERAL */
-            <>
-              <QuestionViewer
-                question={currentQuestion}
-                currentIndex={currentIndex}
-                totalQuestions={examQuestions.length}
-                selectedAnswer={currentQuestion ? userAnswers[currentQuestion.id] : null}
-                onSelectAnswer={handleSelectAnswer}
-                isFlagged={currentQuestion ? flaggedSet.has(currentQuestion.id) : false}
-                onToggleFlag={handleToggleFlag}
-                strikethroughSet={currentQuestion ? strikethroughMap[currentQuestion.id] : null}
-                onToggleStrike={handleToggleStrike}
-                onPrev={handlePrev}
-                onNext={handleNext}
-                hasPrev={currentIndex > 0}
-                hasNext={currentIndex < examQuestions.length - 1}
-                mode={mode}
-                showAnswerInstant={showAnswerInstant}
-                onCheckAnswer={() => setShowAnswerInstant(prev => !prev)}
-              />
+            /* VISUALIZADOR DA PROVA EM ANDAMENTO COM SUPORTE RESPONSIVO A DESKTOP E MOBILE */
+            <div className="study-wrapper-responsive">
+              {/* ABAS DISCRETAS PARA NAVEGAÇÃO TOUCH EM TELAS MENORES */}
+              <div className="mobile-view-tabs">
+                <button
+                  className={`win-btn mobile-tab-btn ${mobileActiveView === 'question' ? 'active' : ''}`}
+                  onClick={() => setMobileActiveView('question')}
+                >
+                  <span>📝 Questão ({currentIndex + 1}/{examQuestions.length})</span>
+                </button>
+                <button
+                  className={`win-btn mobile-tab-btn ${mobileActiveView === 'grid' ? 'active' : ''}`}
+                  onClick={() => setMobileActiveView('grid')}
+                >
+                  <span>📋 Grade & Tempo ({Object.keys(userAnswers).length}/{examQuestions.length})</span>
+                </button>
+              </div>
 
-              <QuestionGrid
-                questions={examQuestions}
-                currentIndex={currentIndex}
-                onSelectIndex={(idx) => {
-                  setCurrentIndex(idx);
-                  setShowAnswerInstant(false);
-                }}
-                userAnswers={userAnswers}
-                flaggedSet={flaggedSet}
-                timerSeconds={timerSeconds}
-                isTimerStarted={isTimerStarted}
-                onStartTimer={handleStartTimer}
-                isPaused={isPaused}
-                onTogglePause={() => setIsPaused(prev => !prev)}
-                mode={mode}
-              />
-            </>
+              <div className={`study-view-container view-${mobileActiveView}`}>
+                <QuestionViewer
+                  question={currentQuestion}
+                  currentIndex={currentIndex}
+                  totalQuestions={examQuestions.length}
+                  selectedAnswer={currentQuestion ? userAnswers[currentQuestion.id] : null}
+                  onSelectAnswer={handleSelectAnswer}
+                  isFlagged={currentQuestion ? flaggedSet.has(currentQuestion.id) : false}
+                  onToggleFlag={handleToggleFlag}
+                  strikethroughSet={currentQuestion ? strikethroughMap[currentQuestion.id] : null}
+                  onToggleStrike={handleToggleStrike}
+                  onPrev={handlePrev}
+                  onNext={handleNext}
+                  hasPrev={currentIndex > 0}
+                  hasNext={currentIndex < examQuestions.length - 1}
+                  mode={mode}
+                  showAnswerInstant={showAnswerInstant}
+                  onCheckAnswer={() => setShowAnswerInstant(prev => !prev)}
+                  onOpenMobileGrid={() => setMobileActiveView('grid')}
+                />
+
+                <QuestionGrid
+                  questions={examQuestions}
+                  currentIndex={currentIndex}
+                  onSelectIndex={(idx) => {
+                    setCurrentIndex(idx);
+                    setShowAnswerInstant(false);
+                    setMobileActiveView('question');
+                  }}
+                  userAnswers={userAnswers}
+                  flaggedSet={flaggedSet}
+                  timerSeconds={timerSeconds}
+                  isTimerStarted={isTimerStarted}
+                  onStartTimer={handleStartTimer}
+                  isPaused={isPaused}
+                  onTogglePause={() => setIsPaused(prev => !prev)}
+                  mode={mode}
+                />
+              </div>
+            </div>
           )}
         </div>
 

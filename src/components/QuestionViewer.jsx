@@ -16,7 +16,8 @@ export default function QuestionViewer({
   hasNext,
   mode,
   showAnswerInstant,
-  onCheckAnswer
+  onCheckAnswer,
+  onOpenMobileGrid
 }) {
   const [modalImage, setModalImage] = useState(null);
 
@@ -37,65 +38,86 @@ export default function QuestionViewer({
     banca,
     categoriaNome,
     provaNome,
-    ano,
     enunciado,
     alternativas,
     gabarito,
-    observacao
+    observacao,
+    blocoNome,
+    blocoIcone
   } = question;
 
   const isChecked = mode === 'treino' && showAnswerInstant;
   const isCorrect = selectedAnswer && selectedAnswer === gabarito;
   const tagDisciplina = disciplina || areaConhecimento || materia || materiaOriginal || 'Geral';
+  const tagBloco = blocoNome || 'Conhecimentos Gerais';
 
   return (
     <div className="study-main-area bevel-inset">
-      {/* CABEÇALHO DA QUESTÃO */}
+      {/* CABEÇALHO DA QUESTÃO COM BLOCO OFICIAL DE CONHECIMENTO */}
       <div className="question-header">
         <div className="question-badge-group">
-          <span className="win-badge">Questão {numeroQuestao || currentIndex + 1} de {totalQuestions}</span>
-          <span className="win-badge" style={{ fontWeight: 'bold' }}>{tagDisciplina}</span>
+          <span className="win-badge win-badge-primary">
+            Questão {numeroQuestao || currentIndex + 1} de {totalQuestions}
+          </span>
+          <span className="win-badge win-badge-block" title="Bloco oficial de conhecimento desta questão">
+            {blocoIcone || '📚'} {tagBloco}
+          </span>
+          <span className="win-badge" style={{ fontWeight: 'bold' }}>
+            {tagDisciplina}
+          </span>
           {categoriaNome && (
-            <span className="win-badge" style={{ borderStyle: 'solid' }}>{categoriaNome}</span>
+            <span className="win-badge win-badge-cat">{categoriaNome}</span>
           )}
-          {banca && banca !== 'Não informada' && (
-            <span className="win-badge" style={{ opacity: 0.9 }}>Banca: {banca}</span>
+          {provaNome && (
+            <span className="win-badge win-badge-exam" title={provaNome}>
+              {provaNome}
+            </span>
           )}
-          <span className="win-badge" style={{ borderStyle: 'dotted' }}>{provaNome}</span>
         </div>
 
-        <div>
+        <div className="question-header-actions">
+          {onOpenMobileGrid && (
+            <button
+              className="win-btn win-btn-mobile-grid"
+              onClick={onOpenMobileGrid}
+              title="Abrir grade de questões e cronômetro"
+            >
+              <span>📋 Grade / Tempo</span>
+            </button>
+          )}
+
           <button
             className={`win-btn ${isFlagged ? 'active' : ''}`}
             onClick={onToggleFlag}
-            title="Marcar questão com bandeira para revisar antes de entregar (Tecla M)"
+            title="Marcar questão com estrela para revisar antes de finalizar (Tecla M)"
           >
             <span>{isFlagged ? '★' : '☆'}</span>
-            <span>{isFlagged ? 'Marcada para Revisão' : 'Marcar para Revisar'}</span>
+            <span>{isFlagged ? 'Marcada' : 'Revisar (M)'}</span>
           </button>
         </div>
       </div>
 
-      {/* ÁREA DE LEITURA ROLÁVEL */}
+      {/* ÁREA DE LEITURA ROLÁVEL COM SUPORTE A TOUCH */}
       <div className="study-scroll-wrapper">
-        {/* ENUNCIADO COM SUPORTE A CLIQUE EM IMAGENS */}
-        <div
-          className="question-enunciado"
-          dangerouslySetInnerHTML={{ __html: enunciado }}
-          onClick={(e) => {
-            if (e.target.tagName === 'IMG') {
-              setModalImage(e.target.src);
-            }
-          }}
-        />
+        {/* ENUNCIADO COM WRAPPER RESPONSIVO PARA TABELAS, FÓRMULAS E IMAGENS */}
+        <div className="question-content-container">
+          <div
+            className="question-enunciado"
+            dangerouslySetInnerHTML={{ __html: enunciado }}
+            onClick={(e) => {
+              if (e.target.tagName === 'IMG') {
+                setModalImage(e.target.src);
+              }
+            }}
+          />
+        </div>
 
-        {/* LISTA DE ALTERNATIVAS */}
+        {/* LISTA DE ALTERNATIVAS COM ÁREA GENEROSA DE TOQUE */}
         <div className="alternatives-container">
           {alternativas.map((alt) => {
             const isSelected = selectedAnswer === alt.letra;
             const isStrikey = strikethroughSet && strikethroughSet.has(alt.letra);
             const isCorrectOption = isChecked && alt.letra === gabarito;
-            const isWrongSelected = isChecked && isSelected && !isCorrectOption;
 
             let cardClass = 'alternative-card';
             if (isSelected) cardClass += ' selected';
@@ -107,6 +129,8 @@ export default function QuestionViewer({
                 key={alt.letra}
                 className={cardClass}
                 onClick={() => onSelectAnswer(alt.letra)}
+                role="button"
+                tabIndex={0}
               >
                 <div className="alt-letter-box">
                   {alt.letra}
@@ -118,9 +142,10 @@ export default function QuestionViewer({
 
                 <div className="alt-actions" onClick={(e) => e.stopPropagation()}>
                   <button
-                    className="alt-btn-strike"
+                    className={`alt-btn-strike ${isStrikey ? 'active' : ''}`}
                     onClick={() => onToggleStrike(alt.letra)}
-                    title={isStrikey ? 'Desmarcar risco' : 'Riscar esta alternativa que você acha que está errada'}
+                    title={isStrikey ? 'Restaurar alternativa' : 'Riscar/eliminar esta alternativa'}
+                    aria-label={`Riscar alternativa ${alt.letra}`}
                   >
                     {isStrikey ? 'Desriscar' : '✕ Riscar'}
                   </button>
@@ -138,12 +163,12 @@ export default function QuestionViewer({
                 {isCorrect ? '✔ RESPOSTA CORRETA!' : '✖ RESPOSTA INCORRETA'}
               </span>
               <p style={{ marginTop: '8px', fontSize: '14px' }}>
-                Gabarito oficial do INEP: <b>Alternativa {gabarito}</b>
-                {selectedAnswer ? ` (Você assinalou: ${selectedAnswer})` : ' (Você deixou em branco)'}
+                Gabarito oficial do exame: <b>Alternativa {gabarito}</b>
+                {selectedAnswer ? ` (Você marcou: ${selectedAnswer})` : ' (Você deixou em branco)'}
               </p>
               {observacao && (
                 <p style={{ marginTop: '4px', fontStyle: 'italic', fontSize: '13px' }}>
-                  Nota oficial: {observacao}
+                  Nota oficial da banca: {observacao}
                 </p>
               )}
             </div>
@@ -151,21 +176,20 @@ export default function QuestionViewer({
         )}
       </div>
 
-      {/* BARRA DE NAVEGAÇÃO INFERIOR */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', borderTop: '2px solid var(--border-medium)', paddingTop: '10px' }}>
+      {/* BARRA DE NAVEGAÇÃO INFERIOR STICKY */}
+      <div className="question-nav-footer">
         <button
-          className="win-btn"
+          className="win-btn nav-btn"
           onClick={onPrev}
           disabled={!hasPrev}
           title="Ir para a questão anterior (Tecla P ou Seta Esquerda)"
         >
-          <span>◄</span>
-          <span>Anterior (P)</span>
+          <span>◄ Anterior (P)</span>
         </button>
 
         {mode === 'treino' && (
           <button
-            className="win-btn win-btn-primary"
+            className="win-btn win-btn-primary nav-btn nav-btn-check"
             onClick={onCheckAnswer}
             title="Conferir resposta oficial da questão imediatamente (Tecla G)"
           >
@@ -174,26 +198,25 @@ export default function QuestionViewer({
         )}
 
         <button
-          className="win-btn win-btn-primary"
+          className="win-btn win-btn-primary nav-btn"
           onClick={onNext}
           disabled={!hasNext}
           title="Ir para a próxima questão (Tecla N ou Seta Direita)"
         >
-          <span>Próxima (N)</span>
-          <span>►</span>
+          <span>Próxima (N) ►</span>
         </button>
       </div>
 
       {/* MODAL DE ZOOM DE IMAGEM */}
       {modalImage && (
         <div className="modal-backdrop" onClick={() => setModalImage(null)}>
-          <div className="win-dialog bevel-outset" style={{ maxWidth: '85vw', maxHeight: '85vh' }} onClick={(e) => e.stopPropagation()}>
+          <div className="win-dialog bevel-outset modal-img-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="win-titlebar">
               <span className="win-title-left">Ampliação da Imagem - Questão {numeroQuestao}</span>
               <button className="win-btn-control win-btn-close" onClick={() => setModalImage(null)}>✕</button>
             </div>
-            <div className="win-dialog-body" style={{ textAlign: 'center', backgroundColor: '#ffffff', padding: '16px' }}>
-              <img src={modalImage} alt="Imagem ampliada" style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain' }} />
+            <div className="win-dialog-body" style={{ textAlign: 'center', backgroundColor: '#ffffff', padding: '16px', overflow: 'auto' }}>
+              <img src={modalImage} alt="Imagem ampliada da questão" className="modal-img-preview" />
             </div>
             <div className="win-dialog-footer">
               <button className="win-btn" onClick={() => setModalImage(null)}>Fechar Visualização</button>

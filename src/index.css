@@ -8,9 +8,20 @@
   --win-font: "Segoe UI", Tahoma, "MS Sans Serif", Arial, sans-serif;
   --win-font-mono: "Consolas", "Courier New", monospace;
   
-  /* Dimensões padrão */
-  --titlebar-height: 28px;
+  /* Dimensões padrão e Safe Areas */
+  --titlebar-height: 32px;
   --statusbar-height: 24px;
+  --app-height: 100dvh;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  /* Touch Targets e Tipografia Responsiva */
+  --touch-target-min: 44px;
+  --font-base-mobile: 16px;
+  --title-size: clamp(1.1rem, 4vw, 1.6rem);
+  --container-padding: clamp(0.75rem, 3vw, 1.5rem);
 }
 
 /* ==========================================================================
@@ -178,14 +189,21 @@ body[data-theme="high-contrast-dark"] {
   -webkit-font-smoothing: antialiased;
 }
 
+html, body {
+  min-height: 100%;
+  min-height: var(--app-height);
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family: var(--win-font);
   background-color: var(--bg-desktop);
   color: var(--text-main);
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
   user-select: text;
 }
 
@@ -232,15 +250,16 @@ body.font-xl {
 }
 
 /* ==========================================================================
-   ESTRUTURA PRINCIPAL DA JANELA
+   ESTRUTURA PRINCIPAL DA JANELA (MOBILE-FIRST)
    ========================================================================== */
 
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100vw;
-  padding: 4px;
+  min-height: 100%;
+  min-height: var(--app-height);
+  width: 100%;
+  padding: 0;
 }
 
 .win-window {
@@ -248,9 +267,8 @@ body.font-xl {
   flex-direction: column;
   flex: 1;
   background-color: var(--bg-window);
-  border-radius: 4px 4px 0 0;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 /* ==========================================================================
@@ -390,6 +408,10 @@ body.font-xl {
    BARRA DE FERRAMENTAS (TOOLBAR)
    ========================================================================== */
 
+/* ==========================================================================
+   BARRA DE FERRAMENTAS (TOOLBAR)
+   ========================================================================== */
+
 .win-toolbar {
   display: flex;
   align-items: center;
@@ -397,7 +419,9 @@ body.font-xl {
   padding: 4px 6px;
   background-color: var(--bg-window);
   border-bottom: 1px solid var(--border-medium);
-  flex-wrap: wrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  flex-wrap: nowrap;
 }
 
 .win-btn {
@@ -405,7 +429,7 @@ body.font-xl {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 3px 10px;
+  padding: 6px 12px;
   background-color: var(--btn-bg);
   color: var(--text-main);
   border-top: 2px solid var(--border-light);
@@ -418,7 +442,9 @@ body.font-xl {
   user-select: none;
   border-radius: 1px;
   font-weight: 500;
-  height: 28px;
+  min-height: 36px;
+  touch-action: manipulation;
+  white-space: nowrap;
 }
 
 .win-btn:hover {
@@ -431,7 +457,7 @@ body.font-xl {
   border-right: 2px solid var(--border-light);
   border-bottom: 2px solid var(--border-light);
   background-color: var(--btn-active);
-  padding: 4px 9px 2px 11px; /* Efeito de clique do windows */
+  padding: 7px 11px 5px 13px; /* Efeito tátil de clique do windows */
 }
 
 .win-btn:disabled {
@@ -449,19 +475,70 @@ body.font-xl {
   height: 22px;
   background-color: var(--border-medium);
   margin: 0 4px;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
-   CONTEÚDO PRINCIPAL (ÁREA DE ESTUDO & SPLIT VIEW)
+   CONTEÚDO PRINCIPAL (ÁREA DE ESTUDO & SPLIT VIEW MOBILE-FIRST)
    ========================================================================== */
 
 .win-content {
   display: flex;
   flex: 1;
   overflow: hidden;
-  padding: 6px;
-  gap: 6px;
+  padding: 2px;
   background-color: var(--bg-window);
+}
+
+.study-wrapper-responsive {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ABAS MOBILE PARA ALTERNAR ENTRE QUESTÃO E GRADE */
+.mobile-view-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px 6px;
+  background-color: var(--bg-window);
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.mobile-tab-btn {
+  flex: 1;
+  min-height: var(--touch-target-min);
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.study-view-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Comportamento no Mobile (< 1024px) */
+.study-view-container.view-question .study-sidebar {
+  display: none;
+}
+.study-view-container.view-question .study-main-area {
+  display: flex;
+  width: 100%;
+}
+
+.study-view-container.view-grid .study-main-area {
+  display: none;
+}
+.study-view-container.view-grid .study-sidebar {
+  display: flex;
+  width: 100%;
 }
 
 .study-main-area {
@@ -470,37 +547,38 @@ body.font-xl {
   flex-direction: column;
   overflow: hidden;
   background-color: var(--bg-card);
-  padding: 12px 16px;
+  padding: 10px 12px;
 }
 
 .study-scroll-wrapper {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px;
+  overflow-x: hidden;
+  padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Metadados da Questão (Cabeçalho da questão) */
 .question-header {
   border-bottom: 2px solid var(--border-medium);
   padding-bottom: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 8px;
 }
 
 .question-badge-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .win-badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 3px 8px;
   font-size: 11px;
   font-weight: bold;
   border: 1px solid var(--border-dark);
@@ -510,24 +588,66 @@ body.font-xl {
   letter-spacing: 0.5px;
 }
 
-.question-title {
-  font-size: 17px;
+.win-badge-primary {
+  background-color: var(--bg-card);
+  border-width: 2px;
+  font-weight: 800;
+}
+
+.win-badge-block {
+  background-color: var(--selected-bg);
+  color: var(--selected-text);
+  border: 1px solid var(--border-dark);
+}
+
+.question-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.win-btn-mobile-grid {
+  min-height: 36px;
   font-weight: bold;
 }
 
-/* Enunciado da Questão */
+/* Enunciado da Questão e Wrappers */
+.question-content-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 12px;
+}
+
 .question-enunciado {
-  font-size: var(--text-enunciado, 17px);
-  line-height: 1.65;
-  margin-bottom: 16px;
+  font-size: var(--text-enunciado, 16px);
+  line-height: 1.6;
   color: var(--text-main);
+  word-break: break-word;
+}
+
+.question-enunciado table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 10px 0;
+  border-collapse: collapse;
+}
+
+.question-enunciado table th,
+.question-enunciado table td {
+  border: 1px solid var(--border-medium);
+  padding: 6px 10px;
 }
 
 .question-enunciado b {
   font-weight: 700;
 }
 
-.question-enunciado img.questao-imagem {
+.question-enunciado img.questao-imagem,
+.question-enunciado img {
   max-width: 100%;
   height: auto;
   display: block;
@@ -536,18 +656,15 @@ body.font-xl {
   background-color: #ffffff;
   padding: 4px;
   cursor: zoom-in;
+  object-fit: contain;
   transition: transform 0.2s ease;
 }
 
-.question-enunciado img.questao-imagem:hover {
-  outline: 2px solid var(--border-dark);
-}
-
-/* Alternativas */
+/* Alternativas com Touch Targets Amplos */
 .alternatives-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   margin-top: 14px;
 }
 
@@ -555,11 +672,13 @@ body.font-xl {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 12px 14px;
+  min-height: var(--touch-target-min);
   background-color: var(--bg-card);
   border: 2px solid var(--border-medium);
   cursor: pointer;
   user-select: none;
+  touch-action: manipulation;
   transition: all 0.1s ease;
 }
 
@@ -585,14 +704,14 @@ body.font-xl {
 }
 
 .alt-letter-box {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: 2px solid currentColor;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 15px;
   flex-shrink: 0;
   border-radius: 2px;
 }
@@ -601,27 +720,30 @@ body.font-xl {
   flex: 1;
   font-size: var(--text-alt, 15px);
   line-height: 1.45;
-  padding-top: 2px;
+  padding-top: 4px;
+  word-break: break-word;
 }
 
 .alt-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
 }
 
 .alt-btn-strike {
+  min-height: 36px;
+  min-width: 44px;
+  padding: 6px 10px;
+  touch-action: manipulation;
   background: none;
   border: 1px solid currentColor;
   color: inherit;
-  font-size: 11px;
-  padding: 2px 6px;
+  font-size: 12px;
   cursor: pointer;
   border-radius: 2px;
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
-.alt-btn-strike:hover {
+.alt-btn-strike:hover, .alt-btn-strike.active {
   opacity: 1;
   font-weight: bold;
 }
@@ -658,12 +780,47 @@ body.font-xl {
   border: 1px solid var(--border-dark);
 }
 
+/* BARRA DE NAVEGAÇÃO INFERIOR DA QUESTÃO (STICKY) */
+.question-nav-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 4px calc(10px + var(--safe-bottom)) 4px;
+  border-top: 2px solid var(--border-medium);
+  background-color: var(--bg-card);
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+}
+
+.nav-btn {
+  flex: 1;
+  min-height: var(--touch-target-min);
+  font-size: 14px;
+  font-weight: bold;
+  touch-action: manipulation;
+}
+
+/* Modal de Zoom de Imagens */
+.modal-img-preview {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+.modal-img-dialog {
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
 /* ==========================================================================
-   PAINEL LATERAL (GRADE 1..90 & CRONÔMETRO)
+   PAINEL LATERAL (GRADE DE QUESTÕES & BLOCOS & CRONÔMETRO)
    ========================================================================== */
 
 .study-sidebar {
-  width: 290px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -671,7 +828,7 @@ body.font-xl {
 }
 
 .timer-box {
-  padding: 8px 12px;
+  padding: 10px 12px;
   background-color: var(--bg-card);
   text-align: center;
 }
@@ -689,6 +846,73 @@ body.font-xl {
   font-size: 26px;
   font-weight: bold;
   letter-spacing: 2px;
+}
+
+.timer-action-btn {
+  width: 100%;
+  margin-top: 6px;
+  min-height: var(--touch-target-min);
+  font-weight: bold;
+  font-size: 13px;
+}
+
+/* ABAS DE BLOCOS DE CONHECIMENTO NA GRADE */
+.blocks-tab-container {
+  padding: 6px 8px;
+  background-color: var(--bg-panel);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.blocks-tab-label {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.blocks-tab-scroll {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.block-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  min-height: 36px;
+  font-size: 12px;
+  background-color: var(--btn-bg);
+  border: 1px solid var(--border-medium);
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+  font-family: inherit;
+}
+
+.block-tab-btn:hover {
+  background-color: var(--btn-hover);
+}
+
+.block-tab-btn.active {
+  background-color: var(--selected-bg);
+  color: var(--selected-text);
+  border-color: var(--border-dark);
+  font-weight: bold;
+}
+
+.block-tab-count {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.block-tab-name {
+  font-weight: bold;
 }
 
 .grid-box {
@@ -714,17 +938,19 @@ body.font-xl {
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
+  gap: 6px;
   padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .grid-item {
-  height: 32px;
+  min-height: 40px;
+  min-width: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: bold;
   cursor: pointer;
   border: 1px solid var(--border-medium);
@@ -732,6 +958,7 @@ body.font-xl {
   color: var(--text-main);
   position: relative;
   user-select: none;
+  touch-action: manipulation;
 }
 
 .grid-item:hover {
@@ -797,38 +1024,39 @@ body.font-xl {
 }
 
 /* ==========================================================================
-   MODAIS & DIÁLOGOS ESTILO WINDOWS
+   MODAIS & DIÁLOGOS ESTILO WINDOWS (MOBILE-FIRST)
    ========================================================================== */
 
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.55);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 16px;
+  padding: 0;
 }
 
 .win-dialog {
   background-color: var(--bg-window);
-  max-width: 650px;
   width: 100%;
-  max-height: 90vh;
+  height: 100%;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
-  border-radius: 3px 3px 0 0;
   overflow: hidden;
-  box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.6);
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .win-dialog-body {
-  padding: 16px;
+  padding: 14px;
   overflow-y: auto;
   flex: 1;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
+  -webkit-overflow-scrolling: touch;
 }
 
 .win-dialog-footer {
@@ -836,14 +1064,14 @@ body.font-xl {
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 10px 14px calc(10px + var(--safe-bottom)) 14px;
   background-color: var(--bg-window);
   border-top: 1px solid var(--border-medium);
 }
 
 .fieldset-box {
   border: 2px groove var(--border-medium);
-  padding: 10px 14px;
+  padding: 10px 12px;
   margin-bottom: 12px;
 }
 
@@ -855,9 +1083,9 @@ body.font-xl {
 
 .form-row {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .win-select, .win-input {
@@ -866,10 +1094,11 @@ body.font-xl {
   border: 2px solid var(--border-dark);
   border-right-color: var(--border-light);
   border-bottom-color: var(--border-light);
-  padding: 4px 8px;
+  padding: 8px 10px;
   font-family: inherit;
-  font-size: 13px;
-  flex: 1;
+  font-size: 16px; /* Evita zoom automático indesejado no iOS Safari */
+  min-height: var(--touch-target-min);
+  width: 100%;
 }
 
 /* ==========================================================================
@@ -877,8 +1106,8 @@ body.font-xl {
    ========================================================================== */
 
 ::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
 }
 
 ::-webkit-scrollbar-track {
@@ -898,25 +1127,101 @@ body.font-xl {
 }
 
 /* ==========================================================================
-   RESPONSIVIDADE (Telas menores / Tablets)
+   MEDIA QUERIES PROGRESSIVAS (MOBILE-FIRST COM MIN-WIDTH)
    ========================================================================== */
 
-@media (max-width: 860px) {
-  .win-content {
-    flex-direction: column;
+/* Telas Médias / Tablets (>= 768px) */
+@media (min-width: 768px) {
+  .app-container {
+    padding: 4px;
+    height: 100vh;
   }
-  .study-sidebar {
-    width: 100%;
-    height: 160px;
+
+  .win-window {
+    border-radius: 4px 4px 0 0;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.35);
+  }
+
+  .win-toolbar {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .question-header {
     flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
-  .timer-box {
-    width: 140px;
+
+  .question-header-actions {
+    width: auto;
   }
-  .grid-box {
+
+  .form-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .question-grid-scroll {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .win-dialog {
+    width: 90%;
+    max-width: 720px;
+    height: auto;
+    max-height: 88vh;
+    border-radius: 3px 3px 0 0;
+    box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.6);
+  }
+
+  .modal-backdrop {
+    padding: 16px;
+  }
+}
+
+/* Telas Amplas / Desktops (>= 1024px) */
+@media (min-width: 1024px) {
+  .win-content {
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .mobile-view-tabs {
+    display: none !important;
+  }
+
+  .win-btn-mobile-grid {
+    display: none !important;
+  }
+
+  .study-view-container {
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .study-view-container.view-question .study-sidebar,
+  .study-view-container.view-grid .study-sidebar {
+    display: flex !important;
+    width: 300px;
+    flex-shrink: 0;
+  }
+
+  .study-view-container.view-question .study-main-area,
+  .study-view-container.view-grid .study-main-area {
+    display: flex !important;
     flex: 1;
   }
+
+  .study-main-area {
+    padding: 14px 18px;
+  }
+
   .question-grid-scroll {
-    grid-template-columns: repeat(10, 1fr);
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .win-dialog {
+    max-width: 820px;
   }
 }
