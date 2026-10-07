@@ -334,7 +334,7 @@ export default function ExamSelectorModal({
               </div>
 
               {/* Linha com Ordenação e Busca */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '8px' }}>
                 {/* Ordenar por */}
                 <div className="form-row" style={{ margin: 0 }}>
                   <label style={{ width: '130px', fontWeight: 'bold' }}>Ordenar por:</label>

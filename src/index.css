@@ -190,10 +190,14 @@ body[data-theme="high-contrast-dark"] {
 }
 
 html, body {
-  min-height: 100%;
-  min-height: var(--app-height);
-  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
-  overflow-x: hidden;
+  height: 100%;
+  height: var(--app-height);
+  max-height: var(--app-height);
+  width: 100%;
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
 }
@@ -256,19 +260,30 @@ body.font-xl {
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
-  min-height: var(--app-height);
+  height: 100%;
+  height: var(--app-height);
+  max-height: var(--app-height);
   width: 100%;
-  padding: 0;
+  max-width: 100vw;
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .win-window {
   display: flex;
   flex-direction: column;
   flex: 1;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   background-color: var(--bg-window);
   border-radius: 0;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* ==========================================================================
@@ -277,6 +292,11 @@ body.font-xl {
 
 .win-titlebar {
   height: var(--titlebar-height);
+  min-height: var(--titlebar-height);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex-shrink: 0;
   background: linear-gradient(to right, var(--titlebar-bg-start), var(--titlebar-bg-end));
   color: var(--titlebar-text);
   display: flex;
@@ -287,6 +307,7 @@ body.font-xl {
   font-size: 13px;
   font-weight: bold;
   letter-spacing: 0.3px;
+  box-sizing: border-box;
 }
 
 .win-title-left {
@@ -296,6 +317,15 @@ body.font-xl {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.win-title-left span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .win-title-icon {
@@ -308,6 +338,7 @@ body.font-xl {
   display: flex;
   align-items: center;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .win-btn-control {
@@ -349,12 +380,25 @@ body.font-xl {
 
 .win-menubar {
   display: flex;
+  align-items: center;
   background-color: var(--bg-window);
   border-bottom: 1px solid var(--border-medium);
   padding: 1px 4px;
   font-size: 12px;
   position: relative;
   user-select: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex-shrink: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  box-sizing: border-box;
+}
+
+.win-menubar::-webkit-scrollbar {
+  display: none;
 }
 
 .win-menu-item {
@@ -422,6 +466,11 @@ body.font-xl {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   flex-wrap: nowrap;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .win-btn {
@@ -484,18 +533,30 @@ body.font-xl {
 
 .win-content {
   display: flex;
+  flex-direction: column;
   flex: 1;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   padding: 2px;
   background-color: var(--bg-window);
+  box-sizing: border-box;
 }
 
 .study-wrapper-responsive {
   display: flex;
   flex-direction: column;
   flex: 1;
-  width: 100%;
   height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
 }
 
@@ -506,6 +567,9 @@ body.font-xl {
   padding: 4px 6px;
   background-color: var(--bg-window);
   border-bottom: 1px solid var(--border-medium);
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .mobile-tab-btn {
@@ -519,8 +583,12 @@ body.font-xl {
   display: flex;
   flex-direction: column;
   flex: 1;
-  width: 100%;
   height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
 }
 
@@ -545,17 +613,85 @@ body.font-xl {
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   background-color: var(--bg-card);
   padding: 10px 12px;
+  box-sizing: border-box;
+}
+
+/* TELA DE BOAS-VINDAS RESPONSIVA */
+.welcome-main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background-color: var(--bg-card);
+  padding: clamp(10px, 3vw, 20px);
+  box-sizing: border-box;
+}
+
+.welcome-container {
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.welcome-action-btn {
+  width: 100%;
+  min-height: var(--touch-target-min);
+  padding: 10px 12px;
+  white-space: normal !important;
+  text-align: left;
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  touch-action: manipulation;
+  box-sizing: border-box;
+}
+
+.welcome-catalog-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  font-size: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 520px) {
+  .welcome-catalog-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .study-scroll-wrapper {
   flex: 1;
+  height: 100%;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
   -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 
 /* Metadados da Questão (Cabeçalho da questão) */
@@ -1003,6 +1139,7 @@ body.font-xl {
 
 .win-statusbar {
   height: var(--statusbar-height);
+  min-height: var(--statusbar-height);
   background-color: var(--bg-window);
   display: flex;
   align-items: center;
@@ -1010,6 +1147,13 @@ body.font-xl {
   gap: 4px;
   font-size: 11px;
   user-select: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex-shrink: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 
 .status-pane {
@@ -1017,10 +1161,28 @@ body.font-xl {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  flex-shrink: 0;
+  font-size: 11px;
 }
 
 .status-pane-flex {
   flex: 1;
+  min-width: 80px;
+}
+
+.status-pane-progress {
+  flex-shrink: 0;
+}
+
+.status-pane-timer {
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .status-pane-optional {
+    display: none !important;
+  }
 }
 
 /* ==========================================================================

@@ -20,7 +20,7 @@ export default function StatsModal({
 
         <div className="win-dialog-body">
           {/* CARDS DE RESUMO GERAL */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))', gap: '8px', marginBottom: '14px' }}>
             <div className="bevel-inset" style={{ padding: '8px', textAlign: 'center', backgroundColor: 'var(--bg-card)' }}>
               <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>SIMULADOS</div>
               <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{totalSimulados}</div>

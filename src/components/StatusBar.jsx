@@ -26,22 +26,22 @@ export default function StatusBar({
         <span>Questão <b>{currentIndex + 1}</b> de <b>{totalQuestions}</b> | {currentExamName || 'Simulado INEP'}</span>
       </div>
 
-      <div className="status-pane bevel-inset" style={{ minWidth: '150px' }}>
+      <div className="status-pane bevel-inset status-pane-progress">
         <span>Progresso: <b>{answeredCount}/{totalQuestions}</b> ({pct}%)</span>
       </div>
 
       {mode === 'simulado' && (
-        <div className="status-pane bevel-inset" style={{ minWidth: '130px' }}>
+        <div className="status-pane bevel-inset status-pane-timer">
           <span>Tempo: <b>{formatTime(timerSeconds)}</b></span>
         </div>
       )}
 
-      <div className="status-pane bevel-inset" style={{ minWidth: '110px' }}>
+      <div className="status-pane bevel-inset status-pane-optional">
         <span>Marcadas: <b>{flaggedCount}</b></span>
       </div>
 
-      <div className="status-pane bevel-inset" style={{ minWidth: '190px' }}>
-        <span>Banco Total: <b>5.799 q. (112 Provas)</b></span>
+      <div className="status-pane bevel-inset status-pane-optional">
+        <span>Banco: <b>5.799 q.</b></span>
       </div>
     </div>
   );
