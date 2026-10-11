@@ -58,6 +58,8 @@ Qualquer desenvolvedor ou Agente de IA que for alterar o projeto **DEVE** seguir
 | **Renderizador DOM** | ReactDOM | `^18.3.1` | Montagem da árvore DOM |
 | **Build Tool & Bundler** | Vite | `^6.0.7` | Servidor de desenvolvimento rápido e bundler Rollup/ESBuild |
 | **Vite Plugin** | @vitejs/plugin-react | `^4.3.4` | Suporte a JSX e Fast Refresh do React |
+| **Desktop Wrapper / Core Nativo** | Tauri 2 (Rust) | `^2.12.3` | Runtime desktop de alta performance, gerador de `.exe` leve e seguro |
+| **Linguagem de Sistemas** | Rust (Cargo/Rustc) | `1.99.0` | Backend nativo com compilação para código de máquina Windows MSVC |
 | **Estilização** | Vanilla CSS3 | Nativo | Design system completo, variáveis CSS e temas em `src/index.css` |
 | **Scripts de Dados** | Node.js (ESM / CJS) | 18+ | Scripts de raspagem e reclassificação de disciplinas (`scripts/*.js`, `*.cjs`) |
 | **Scripts de Banco** | Python 3 + SQLite3 | 3.10+ | Conversão dos dados JSON para banco de dados relacional SQLite (`scripts/gerar_sqlite.py`) |
@@ -102,24 +104,33 @@ e:/Projects/EstudeAqui/
 │   ├── reclassificar_disciplinas.cjs    # Algoritmo de correção de disciplinas para a grade ENEM
 │   └── gerar_sqlite.py                  # Script Python que consome JSON e cria tabelas no SQLite
 │
-└── src/                                 # Código-fonte da aplicação React
-    ├── main.jsx                         # Ponto de entrada React (createRoot)
-    ├── App.jsx                          # Componente raiz, gestor central de estado e regras de negócio
-    ├── index.css                        # Design System retrô completo (estilo Windows XP / P&B / Mobile-First)
-    ├── utils/                           # Utilitários de classificação e lógica de prova
-    │   └── blockClassifier.js           # Classificação e ordenação canônica dos blocos oficiais de conhecimento
-    └── components/                      # Componentes modulares da interface
-        ├── TitleBar.jsx                 # Barra de título com botões de janela clássicos
-        ├── MenuBar.jsx                  # Menu horizontal clássico (Arquivo, Simulado, Ferramentas, etc.)
-        ├── Toolbar.jsx                  # Barra de atalhos rápidos com controles de cronômetro e ações
-        ├── WelcomeScreen.jsx            # Tela de boas-vindas com cartões para início rápido
-        ├── QuestionViewer.jsx           # Exibição da questão, alternativas, riscamento, badges de bloco e gabarito
-        ├── QuestionGrid.jsx             # Grade de navegação com abas de blocos oficiais e progresso
-        ├── StatusBar.jsx                # Barra de rodapé com estatísticas da sessão e atalhos de tema
-        ├── ExamSelectorModal.jsx        # Modal com seleção de língua estrangeira e divisão por blocos
-        ├── ResultsModal.jsx             # Relatório analítico pós-prova com desempenho por bloco oficial e matérias
-        ├── StatsModal.jsx               # Histórico acumulado de desempenho em simulados anteriores
-        └── HelpModal.jsx                # Janela de ajuda, atalhos de teclado e sobre o sistema
+├── src/                                 # Código-fonte da aplicação React
+│   ├── main.jsx                         # Ponto de entrada React (createRoot)
+│   ├── App.jsx                          # Componente raiz, gestor central de estado e regras de negócio
+│   ├── index.css                        # Design System retrô completo (estilo Windows XP / P&B / Mobile-First)
+│   ├── utils/                           # Utilitários de classificação e lógica de prova
+│   │   └── blockClassifier.js           # Classificação e ordenação canônica dos blocos oficiais de conhecimento
+│   └── components/                      # Componentes modulares da interface
+│       ├── TitleBar.jsx                 # Barra de título com botões de janela clássicos
+│       ├── MenuBar.jsx                  # Menu horizontal clássico (Arquivo, Simulado, Ferramentas, etc.)
+│       ├── Toolbar.jsx                  # Barra de atalhos rápidos com controles de cronômetro e ações
+│       ├── WelcomeScreen.jsx            # Tela de boas-vindas com cartões para início rápido
+│       ├── QuestionViewer.jsx           # Exibição da questão, alternativas, riscamento, badges de bloco e gabarito
+│       ├── QuestionGrid.jsx             # Grade de navegação com abas de blocos oficiais e progresso
+│       ├── StatusBar.jsx                # Barra de rodapé com estatísticas da sessão e atalhos de tema
+│       ├── ExamSelectorModal.jsx        # Modal com seleção de língua estrangeira e divisão por blocos
+│       ├── ResultsModal.jsx             # Relatório analítico pós-prova com desempenho por bloco oficial e matérias
+│       ├── StatsModal.jsx               # Histórico acumulado de desempenho em simulados anteriores
+│       └── HelpModal.jsx                # Janela de ajuda, atalhos de teclado e sobre o sistema
+│
+└── src-tauri/                           # Núcleo Desktop Nativo em Rust (Tauri 2)
+    ├── Cargo.toml                       # Manifesto de dependências e configuração do pacote Rust
+    ├── tauri.conf.json                  # Configuração de janelas, permissões e empacotamento Tauri
+    ├── build.rs                         # Script de compilação do Tauri
+    ├── icons/                           # Ícones multiplataforma do aplicativo
+    └── src/                             # Código Rust nativo
+        ├── main.rs                      # Entrypoint do binário desktop
+        └── lib.rs                       # Lógica de plugins, inicialização e comandos Tauri
 ```
 
 ---
@@ -233,7 +244,32 @@ O tema é controlado pelo atributo `data-theme` no elemento `<body>`:
 
 ## 8. Como Executar e Testar o Projeto
 
-### Modo de Desenvolvimento (Node.js + Vite):
+### Modo Desktop Nativo (Rust + Tauri 2) — Recomendado:
+```bash
+# Executar em modo desenvolvimento com janela nativa e hot-reload
+npm run tauri:dev
+
+# Compilar o instalador oficial Windows (Setup NSIS .exe de ~4 MB com atalhos)
+npm run tauri:build
+
+# Compilar a versão portátil independente (.zip de ~4.7 MB)
+npm run tauri:portable
+
+# Compilar apenas o binário .exe rápido sem instalador
+npm run tauri:build -- --no-bundle
+```
+* **Instalador Oficial:** gerado em `src-tauri/target/release/bundle/nsis/EstudeAqui_1.0.0_x64-setup.exe`.
+* **Versão Portable (.zip):** gerada em `dist-portable/EstudeAqui_1.0.0_Portable_x64.zip`.
+* **Binário Direto (.exe):** gerado em `src-tauri/target/release/EstudeAqui.exe`.
+
+### Publicação Automática Multiplataforma (GitHub Actions):
+O projeto conta com o pipeline automatizado [.github/workflows/release.yml](file:///e:/Projects/EstudeAqui/.github/workflows/release.yml).
+Ao criar e enviar uma tag git (ex: `git tag v1.0.0 && git push origin v1.0.0`), a nuvem compila automaticamente:
+* 🪟 **Windows:** Instalador NSIS (`.exe`) e binário nativo.
+* 🐧 **Linux:** Executável portable universal (`.AppImage`) e pacote Debian/Ubuntu (`.deb`).
+* 🍏 **macOS:** Imagem de disco (`.dmg`) universal para Apple Silicon (M1/M2/M3) e processadores Intel.
+
+### Modo de Desenvolvimento Web (Node.js + Vite):
 ```bash
 # Instalação das dependências
 npm install

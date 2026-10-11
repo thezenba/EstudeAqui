@@ -1,0 +1,76 @@
+name: 'Release Multiplataforma (Tauri 2)'
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'windows-latest'
+            args: ''
+          - platform: 'macos-latest'
+            args: '--target universal-apple-darwin'
+          - platform: 'ubuntu-22.04'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Instalar dependências de sistema (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'npm'
+
+      - name: Instalar Rust estável
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Cache de dependências Rust
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Instalar dependências do projeto
+        run: npm install
+
+      - name: Compilar e publicar release com Tauri Action
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'EstudeAqui v__VERSION__'
+          releaseBody: |
+            ## 📘 EstudeAqui - Simulador INEP / ENEM / Vestibulares
+            
+            Versão oficial de alta performance compilada com **Rust + Tauri 2**.
+            
+            ### 📦 Arquivos disponíveis para download:
+            - **Windows Instalador:** `EstudeAqui_*_x64-setup.exe` (Instalador clássico com atalhos e desinstalador)
+            - **Linux Portable:** `EstudeAqui_*_amd64.AppImage` (Executável portátil para qualquer distribuição Linux)
+            - **Linux Debian/Ubuntu:** `estudeaqui_*_amd64.deb`
+            - **macOS:** `EstudeAqui_*_universal.dmg` (Compatível com processadores Apple Silicon M1/M2/M3 e Intel)
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}

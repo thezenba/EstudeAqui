@@ -6,13 +6,19 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:portable": "tauri build --no-bundle && powershell -NoProfile -Command \"New-Item -ItemType Directory -Force 'dist-portable' | Out-Null; Compress-Archive -Path 'src-tauri/target/release/EstudeAqui.exe' -DestinationPath 'dist-portable/EstudeAqui_1.0.0_Portable_x64.zip' -Force\""
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.12.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.12.2",
     "@vitejs/plugin-react": "^4.3.4",
     "vite": "^6.0.7"
   }
