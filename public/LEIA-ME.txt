@@ -1,23 +1,32 @@
 ========================================================================
-ESTUDEAQUI - SIMULADOR OFFLINE (ENEM, VESTIBULARES E CONCURSOS)
+🏛️ ESTUDEAQUI — SIMULADOR OFFLINE (INEP, ENEM, VESTIBULARES E CONCURSOS)
 ========================================================================
 
-Este pacote contem o simulador completo com 5.799 questoes oficiais
-e 112 provas (ENEM 2015-2024, ITA, UFU, IFTM, FGV, DETRAN, etc.), pronto
-para ser usado 100% offline, sem necessidade de conexao com a internet.
+Este pacote contém o simulador completo com banco de questões oficiais
+e provas do ENEM (2015-2024) e vestibulares, preparado para funcionamento
+100% autônomo e offline, sem qualquer dependência de conexão com a internet.
 
-COMO USAR:
+FORMAS DE EXECUÇÃO:
 ------------------------------------------------------------------------
-1. De 2 cliques no arquivo:
-   INICIAR_ESTUDEAQUI.bat
 
-2. O seu navegador de internet padrao (Chrome, Edge, Firefox, Brave)
-   se abrira automaticamente com o aplicativo pronto para estudar!
+Opção 1: Aplicativo Desktop Nativo em Rust (Recomendado)
+  • Se você possui o instalador oficial:
+    Execute "EstudeAqui_1.0.0_x64-setup.exe" para instalar o aplicativo
+    com atalhos na Área de Trabalho e Menu Iniciar.
+  • Se você está usando a versão portátil:
+    Basta dar 2 cliques em "EstudeAqui.exe" para abrir a janela nativa
+    com tempo de resposta instantâneo e consumo mínimo de memória.
 
-3. Voce nao precisa instalar nada (nem Node.js, nem Python, nem banco).
-   O aplicativo funciona diretamente no seu computador Windows.
+Opção 2: Servidor Web Local Clássico (Sem Instalação)
+  1. Dê 2 cliques no arquivo:
+     INICIAR_ESTUDEAQUI.bat
 
-4. Para fechar, basta fechar a janela preta do terminal.
+  2. O navegador padrão do sistema (Chrome, Edge, Firefox, Brave)
+     abrirá automaticamente o simulador no endereço local:
+     http://localhost:8080
 
-Bons estudos!
+  3. Para encerrar o servidor, basta fechar a janela do terminal.
+
+------------------------------------------------------------------------
+Bons estudos e excelente preparação!
 ========================================================================

@@ -8,7 +8,7 @@ Você é um especialista em UI/UX Mobile-First e Engenharia de Frontend em React
 - **Core:** React 18, Vite 6, JavaScript ES6+.
 - **Estilo:** CSS3 Puro (Vanilla CSS) com CSS Custom Properties (variáveis nativas). Proibido o uso de Tailwind, Bootstrap ou styled-components.
 - **Identidade Visual:** Retrô (Windows XP / Classic). O visual retrô deve ser preservado, mas a ergonomia em telas de toque (touch UX) é prioridade absoluta.
-- **Ambientes Alvo:** Mobile Browsers (iOS Safari, Android Chrome), PWA e futuros wrappers nativos (Capacitor / Tauri / Electron).
+- **Ambientes Alvo:** Mobile Browsers (iOS Safari, Android Chrome), PWA e Desktop Nativo de Alta Performance (Tauri 2 / Rust).
 
 ---
 
