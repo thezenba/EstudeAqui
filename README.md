@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>Simulador desktop de alta concentração com interface clássica utilitária (estilo Windows XP / P&B).</strong><br>
+  <strong>Simulador de Provas para Ajudar Estudantes nas provas de Concurso, Vestibulares e Enem.</strong><br>
   Construído com <strong>Rust (Tauri 2)</strong>, <strong>React 18</strong> e arquitetura <strong>100% Offline-First</strong>.
 </p>
 
